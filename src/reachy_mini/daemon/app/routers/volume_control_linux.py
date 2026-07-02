@@ -4,6 +4,7 @@ import logging
 import re
 import subprocess
 from dataclasses import dataclass
+from pathlib import Path
 
 from .volume_control import (
     SOUND_CARD_NAMES,
@@ -13,6 +14,26 @@ from .volume_control import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _active_sink_card_id() -> str | None:
+    """Return the ALSA card id the ``reachymini_audio_sink`` currently targets.
+
+    Reads ``~/.asoundrc`` and returns the ``hw:CARD=<id>`` card id of the
+    playback sink so the output volume can follow whichever speaker is active
+    (built-in XMOS vs an external USB card selected via ``audio_output.py``).
+    Returns ``None`` when the sink points at the built-in card (``hw:0``) or
+    the file cannot be parsed, in which case the caller falls back to the
+    built-in card.
+    """
+    try:
+        content = (Path.home() / ".asoundrc").read_text(errors="ignore")
+    except OSError:
+        return None
+    match = re.search(r"reachymini_audio_sink\s*\{(.*?)\n\}", content, re.DOTALL)
+    block = match.group(1) if match else content
+    card = re.search(r'pcm\s+"hw:CARD=([^,"]+)', block)
+    return card.group(1) if card else None
 
 try:
     import pulsectl
@@ -391,7 +412,11 @@ class VolumeControlLinux(VolumeControl):
     def _alsa_get_input_output_devices(self) -> tuple[AudioDevice, AudioDevice]:
         """Get the input and output audio devices via ALSA.
 
-        If not found, returns default AudioDevices to fall back to default ALSA controls.
+        The input (microphone) device is always the built-in XMOS array. The
+        output device follows the active ``reachymini_audio_sink`` so the
+        volume slider controls whichever speaker is currently selected
+        (built-in XMOS or an external USB card). Falls back to default
+        AudioDevices when nothing matches.
 
         Returns:
             A tuple of two AudioDevice: (input_device, output_device).
@@ -399,18 +424,32 @@ class VolumeControlLinux(VolumeControl):
         """
         devices = self._alsa_get_all_devices()
 
+        # Built-in XMOS card, used for the mic and as the default speaker.
+        input_device = AudioDevice(None, "Default", AudioDeviceType.INPUT)
+        builtin_output = AudioDevice(None, "Default", AudioDeviceType.OUTPUT)
         for device_id, device_name in devices.items():
             if any(
                 [sound_card in device_name.lower() for sound_card in SOUND_CARD_NAMES]
             ):
-                # Input and output devices will appear with the same ID
-                return AudioDevice(
+                input_device = AudioDevice(
                     device_id, device_name, AudioDeviceType.INPUT
-                ), AudioDevice(device_id, device_name, AudioDeviceType.OUTPUT)
+                )
+                builtin_output = AudioDevice(
+                    device_id, device_name, AudioDeviceType.OUTPUT
+                )
+                break
 
-        return AudioDevice(None, "Default", AudioDeviceType.INPUT), AudioDevice(
-            None, "Default", AudioDeviceType.OUTPUT
-        )
+        # If an external sink is active, target that card for output volume.
+        # amixer accepts the card id string directly (``amixer -c <id>``).
+        active_card = _active_sink_card_id()
+        if active_card:
+            output_device = AudioDevice(
+                active_card, active_card, AudioDeviceType.OUTPUT
+            )
+        else:
+            output_device = builtin_output
+
+        return input_device, output_device
 
     def _build_amixer_get_command(
         self,

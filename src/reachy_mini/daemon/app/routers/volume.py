@@ -161,3 +161,25 @@ async def set_microphone_volume(volume_req: VolumeRequest) -> VolumeResponse:
         vc.input_device.name,
         "Failed to set microphone volume",
     )
+
+
+# ---- Audio output device selection ----
+# Attached to this router (prefix "/volume") so switching the output speaker
+# needs no change to main.py's router registration. Logic lives in
+# audio_output.py. Switching to an external card bypasses the XMOS hardware
+# echo cancellation (see audio_output.py) — use push-to-talk for full duplex.
+from . import audio_output  # noqa: E402
+
+
+@router.get("/output")
+async def get_audio_output() -> dict[str, list[audio_output.AudioOutputDevice]]:
+    """List selectable audio output devices, with the active one flagged."""
+    return {"devices": audio_output.list_devices()}
+
+
+@router.post("/output/set")
+async def set_audio_output(
+    req: audio_output.SetAudioOutputRequest,
+) -> dict[str, object]:
+    """Switch the daemon's audio output device (restarts the daemon to apply)."""
+    return audio_output.switch(req.id)
