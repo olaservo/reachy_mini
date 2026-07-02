@@ -240,7 +240,105 @@ const microphoneControl = {
   },
 };
 
+const audioOutputControl = {
+  // How long to wait for the daemon to restart after a switch before reloading.
+  RESTART_WAIT_MS: 12000,
+
+  init: async () => {
+    const select = document.getElementById('audio-output-select');
+    if (!select) {
+      console.warn('Audio output selector not found in DOM');
+      return;
+    }
+
+    await audioOutputControl.load();
+
+    select.addEventListener('change', async (e) => {
+      const id = e.target.value;
+      const note = document.getElementById('audio-output-note');
+      select.disabled = true;
+      if (note) {
+        note.className = 'text-xs text-gray-500';
+        note.textContent = 'Switching… robot audio restarting.';
+      }
+
+      try {
+        const response = await fetch('/api/volume/output/set', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id }),
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      } catch (error) {
+        console.error('Error switching audio output:', error);
+        if (note) {
+          note.className = 'text-xs text-red-600';
+          note.textContent = 'Switch failed — see console.';
+        }
+        select.disabled = false;
+        return;
+      }
+
+      // The daemon restarts to apply the change; reload state once it's back.
+      setTimeout(() => {
+        select.disabled = false;
+        audioOutputControl.load().catch((err) =>
+          console.error('Failed to reload audio outputs:', err),
+        );
+      }, audioOutputControl.RESTART_WAIT_MS);
+    });
+  },
+
+  load: async () => {
+    const select = document.getElementById('audio-output-select');
+    const note = document.getElementById('audio-output-note');
+    if (!select) return;
+
+    try {
+      const response = await fetch('/api/volume/output');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      const devices = Array.isArray(data.devices) ? data.devices : [];
+
+      select.innerHTML = '';
+      let activeHasAec = true;
+      devices.forEach((device) => {
+        const option = document.createElement('option');
+        option.value = device.id;
+        option.textContent = device.label;
+        if (device.active) {
+          option.selected = true;
+          activeHasAec = device.aec;
+        }
+        select.appendChild(option);
+      });
+
+      if (note) {
+        if (activeHasAec) {
+          note.className = 'text-xs text-gray-500';
+          note.textContent = '';
+        } else {
+          note.className = 'text-xs text-amber-600';
+          note.textContent = 'External — echo cancellation off; use push-to-talk.';
+        }
+      }
+      console.log('Loaded audio outputs:', devices.length);
+    } catch (error) {
+      console.error('Error loading audio outputs:', error);
+      if (note) {
+        note.className = 'text-xs text-red-600';
+        note.textContent = 'Could not load output devices.';
+      }
+    }
+  },
+};
+
 window.addEventListener('DOMContentLoaded', () => {
   volumeControl.init();
   microphoneControl.init();
+  audioOutputControl.init();
 });
