@@ -93,6 +93,13 @@ class VolumeControlLinux(VolumeControl):
         alsa_input, alsa_output = self._alsa_get_input_output_devices()
         self._initialize_device(alsa_input)
         self._initialize_device(alsa_output)
+        # External USB cards reset to their own (often low) hardware default on
+        # re-enumeration, and `alsactl store` does not reliably survive a cold
+        # power-cycle — so raise the active external sink to 100% on every
+        # startup. Their control lives at index 0 (the index-1 call above is a
+        # no-op for them).
+        if _active_sink_card_id():
+            self._initialize_device(alsa_output, index=0)
 
         if _PULSECTL_AVAILABLE:
             return self._pulse_get_input_output_devices()
@@ -346,14 +353,16 @@ class VolumeControlLinux(VolumeControl):
 
         return controls
 
-    def _initialize_device(self, device: AudioDevice) -> None:
-        """Set all ALSA mixer controls with index 1 to 100% for a given audio device.
+    def _initialize_device(self, device: AudioDevice, index: int = 1) -> None:
+        """Set all ALSA mixer controls with the given index to 100% for a given audio device.
 
         Args:
             device: The audio device. If its ID is None, uses the default audio device.
+            index: The ALSA control index to set. The built-in XMOS card uses
+                index-1 controls; plain USB cards expose their control at index 0.
 
         """
-        cmd = self._build_amixer_set_command(device, volume=100, index=1)
+        cmd = self._build_amixer_set_command(device, volume=100, index=index)
         try:
             subprocess.run(
                 cmd,
