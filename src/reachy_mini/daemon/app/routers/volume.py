@@ -171,6 +171,14 @@ async def set_microphone_volume(volume_req: VolumeRequest) -> VolumeResponse:
 from . import audio_output  # noqa: E402
 
 
+@router.on_event("startup")
+async def _assert_external_output_volume() -> None:
+    """Kick off the post-startup external-volume re-assert (see audio_output.py)."""
+    import asyncio
+
+    asyncio.create_task(audio_output.ensure_external_volume_after_startup())
+
+
 @router.get("/output")
 async def get_audio_output() -> dict[str, list[audio_output.AudioOutputDevice]]:
     """List selectable audio output devices, with the active one flagged."""

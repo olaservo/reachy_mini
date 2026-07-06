@@ -19,6 +19,7 @@ The two endpoints are attached to the existing ``/api/volume`` router
 needed.
 """
 
+import asyncio
 import logging
 import re
 import shlex
@@ -187,6 +188,44 @@ def list_devices() -> list[AudioOutputDevice]:
             )
         )
     return devices
+
+
+# Seconds after app startup at which to (re-)assert the external card's
+# volume. USB cards reset to their own low hardware default when the media
+# pipeline reopens the sink (~18s after service start on the Wireless unit),
+# and `alsactl store` does not reliably survive a cold power-cycle — so a
+# single well-timed set is fragile; asserting a few times over the first
+# minute is cheap and robust. Repeated sets are no-ops once the level sticks.
+_STARTUP_VOLUME_DELAYS = (10.0, 20.0, 30.0, 45.0)
+
+
+def _raise_card_volume(card_id: str) -> None:
+    """Set an external card's playback volume to 100% (best effort)."""
+    try:
+        subprocess.run(
+            f"amixer -c {shlex.quote(card_id)} sset Speaker,0 100% "
+            f"|| amixer -c {shlex.quote(card_id)} sset PCM,0 100%",
+            shell=True,
+            capture_output=True,
+            timeout=AUDIO_CMD_TIMEOUT,
+        )
+    except subprocess.SubprocessError as e:
+        logger.warning("audio-output: failed to raise %s volume: %s", card_id, e)
+
+
+async def ensure_external_volume_after_startup() -> None:
+    """Re-assert the active external sink's volume during daemon startup.
+
+    Registered as a startup task from ``volume.py``. Does nothing when the
+    built-in speaker is active (its levels are handled by the XMOS init).
+    """
+    card = _current_sink_card()
+    if not card or card == "__builtin__":
+        return
+    for i, delay in enumerate(_STARTUP_VOLUME_DELAYS):
+        await asyncio.sleep(delay - (_STARTUP_VOLUME_DELAYS[i - 1] if i else 0))
+        await asyncio.to_thread(_raise_card_volume, card)
+    logger.info("audio-output: external card %s volume asserted at 100%%", card)
 
 
 def _write_asoundrc(sink: str) -> None:
