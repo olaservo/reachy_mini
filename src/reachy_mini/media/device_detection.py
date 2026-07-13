@@ -15,6 +15,7 @@ import logging
 import platform
 import re
 import sys
+import time
 from dataclasses import dataclass, field
 from typing import Any, List, Optional, Sequence, Tuple
 
@@ -249,6 +250,23 @@ def gst_devices_to_device_infos(gst_devices: Any) -> list[DeviceInfo]:
     return [gst_device_to_device_info(d, index=i) for i, d in enumerate(gst_devices)]
 
 
+# Upper bound and poll interval for waiting on the PipeWire device provider to
+# start (and hide the raw ALSA provider) before reading the monitor. Detection
+# is infrequent, so a short wait is acceptable; the loop exits as soon as a
+# PipeWire node is seen, so the timeout is only hit on non-PipeWire Linux hosts.
+_MONITOR_SETTLE_TIMEOUT_S: float = 1.5
+_MONITOR_SETTLE_POLL_S: float = 0.1
+
+
+def _has_pipewire_node(gst_devices: Any) -> bool:
+    """True if any ``Gst.Device`` exposes a ``node.name`` (i.e. PipeWire is up)."""
+    for device in gst_devices:
+        props = device.get_properties()
+        if props is not None and props.get_string("node.name"):
+            return True
+    return False
+
+
 def gst_monitor_devices(filter_class: str) -> list[DeviceInfo]:
     """Start a ``Gst.DeviceMonitor``, query devices, and return :class:`DeviceInfo` list.
 
@@ -277,7 +295,24 @@ def gst_monitor_devices(filter_class: str) -> list[DeviceInfo]:
     monitor.add_filter(filter_class)
     monitor.start()
     try:
-        return gst_devices_to_device_infos(monitor.get_devices())
+        devices = monitor.get_devices() or []
+        # Device providers start asynchronously. On a PipeWire system the
+        # pipewiredeviceprovider hides the raw ALSA provider once it is up, so
+        # a read taken too early can catch a transient ALSA-only view — which
+        # omits Bluetooth sinks and reports names that pulsesink cannot consume
+        # (see get_audio_device, which resolves PipeWire ``node.name``). Poll
+        # briefly on Linux until a PipeWire node appears (identified by a
+        # ``node.name`` property) so the enumeration is deterministic. Other
+        # platforms keep the immediate read (no such provider hand-off).
+        if sys.platform.startswith("linux"):
+            waited = 0.0
+            while waited < _MONITOR_SETTLE_TIMEOUT_S and not _has_pipewire_node(
+                devices
+            ):
+                time.sleep(_MONITOR_SETTLE_POLL_S)
+                waited += _MONITOR_SETTLE_POLL_S
+                devices = monitor.get_devices() or []
+        return gst_devices_to_device_infos(devices)
     finally:
         # Workaround: on macOS (observed on macOS 26 "Tahoe") calling
         # Gst.DeviceMonitor.stop() can segfault inside

@@ -46,8 +46,23 @@ def get_device_names(device_class: str) -> list[str]:
         logger.error(f"Failed to list {device_class} devices: {e}")
         return []
 
+    # Prefer PipeWire nodes: they are stable across the ALSA/PipeWire providers,
+    # include Bluetooth sinks, and their display names round-trip through
+    # find_audio_device -> node.name -> pulsesink. The raw ALSA provider view
+    # (e.g. "Dummy Output", monitor sources) is dropped when PipeWire is present
+    # so listing and selection agree. Fall back to the raw list off PipeWire.
+    pipewire = [
+        device
+        for device in devices
+        if device.properties.get("node.name")
+        and device.properties.get("device.class") != "monitor"
+        and device.display_name
+        and device.display_name != "Dummy Output"
+    ]
+    chosen = pipewire or devices
+
     names: list[str] = []
-    for device in devices:
+    for device in chosen:
         if device.display_name and device.display_name not in names:
             names.append(device.display_name)
     return names
@@ -74,7 +89,7 @@ def _apply_device_change(http_request: Request, *, restart: bool) -> None:
 
     if restart:
         logger.warning(
-            "Restarting the media pipeline to apply the input device change now "
+            "Restarting the media pipeline to apply the audio device change now "
             "(this briefly interrupts any active audio/video stream)."
         )
         try:
@@ -82,9 +97,7 @@ def _apply_device_change(http_request: Request, *, restart: bool) -> None:
         except Exception as e:  # pragma: no cover - defensive
             logger.error(f"Could not restart media pipeline after device change: {e}")
     else:
-        logger.info(
-            "Output device change will be used the next time a sound is played."
-        )
+        logger.info("Audio device change saved; it applies on the next media start.")
 
 
 @router.get("/output")
@@ -123,7 +136,10 @@ async def set_selected_output_device(
     _selected_output_device = request.device_name
     logger.info(f"Output device set to: {_selected_output_device}")
     if changed:
-        _apply_device_change(http_request, restart=False)
+        # The playback sink is baked in at GStreamerAudio init, so a pipeline
+        # rebuild is required for the new output to take effect (not just "next
+        # sound").
+        _apply_device_change(http_request, restart=True)
 
     return SelectedDeviceResponse(device_name=_selected_output_device)
 
@@ -136,7 +152,7 @@ async def clear_selected_output_device(http_request: Request) -> SelectedDeviceR
     _selected_output_device = None
     logger.info("Output device cleared, using default")
     if changed:
-        _apply_device_change(http_request, restart=False)
+        _apply_device_change(http_request, restart=True)
 
     return SelectedDeviceResponse(device_name=None)
 
