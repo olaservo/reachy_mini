@@ -15,7 +15,6 @@ import logging
 import platform
 import re
 import sys
-import threading
 import time
 from dataclasses import dataclass, field
 from typing import Any, List, Optional, Sequence, Tuple
@@ -255,7 +254,7 @@ def gst_devices_to_device_infos(gst_devices: Any) -> list[DeviceInfo]:
 # start (and hide the raw ALSA provider) before reading the monitor. Detection
 # is infrequent, so a short wait is acceptable; the loop exits as soon as a
 # PipeWire node is seen, so the timeout is only hit on non-PipeWire Linux hosts.
-_MONITOR_SETTLE_TIMEOUT_S: float = 1.5
+_MONITOR_SETTLE_TIMEOUT_S: float = 3.0
 _MONITOR_SETTLE_POLL_S: float = 0.1
 
 
@@ -268,57 +267,12 @@ def _has_pipewire_node(gst_devices: Any) -> bool:
     return False
 
 
-# Cache of started, long-lived Gst.DeviceMonitors keyed by filter class. A
-# monitor is created and started once, then reused: keeping it warm avoids the
-# per-call cold start where the PipeWire provider has not yet come up (and hidden
-# the raw ALSA provider), which made enumeration race between a PipeWire view
-# (Bluetooth present, node.name usable by pulsesink) and an ALSA-only view. A
-# warm monitor also tracks device add/remove live, so subsequent reads stay
-# current as Bluetooth speakers connect/disconnect. Monitors are intentionally
-# never stopped, which also sidesteps a macOS Gst.DeviceMonitor.stop() segfault.
-_MONITORS: dict[str, Any] = {}
-_MONITORS_LOCK = threading.Lock()
-
-
-def _started_monitor(filter_class: str) -> Any:
-    """Return a cached, already-started ``Gst.DeviceMonitor`` for *filter_class*."""
-    monitor = _MONITORS.get(filter_class)
-    if monitor is not None:
-        return monitor
-    with _MONITORS_LOCK:
-        monitor = _MONITORS.get(filter_class)
-        if monitor is not None:
-            return monitor
-        # Ensure GStreamer is initialized: callers outside the media pipeline
-        # (e.g. the audio-devices REST router) may reach this before any pipeline
-        # has run Gst.init(). It is idempotent, so this is a no-op afterwards.
-        if not Gst.is_initialized():
-            Gst.init(None)
-        monitor = Gst.DeviceMonitor()
-        monitor.add_filter(filter_class)
-        monitor.start()
-        # Settle once, on first start: on a PipeWire system the
-        # pipewiredeviceprovider starts asynchronously and hides the raw ALSA
-        # provider once up. Wait briefly on Linux for a PipeWire node to appear
-        # so the first read is not a transient ALSA-only view. Later reads reuse
-        # this warm monitor and need no wait.
-        if sys.platform.startswith("linux"):
-            waited = 0.0
-            while waited < _MONITOR_SETTLE_TIMEOUT_S and not _has_pipewire_node(
-                monitor.get_devices() or []
-            ):
-                time.sleep(_MONITOR_SETTLE_POLL_S)
-                waited += _MONITOR_SETTLE_POLL_S
-        _MONITORS[filter_class] = monitor
-        return monitor
-
-
 def gst_monitor_devices(filter_class: str) -> list[DeviceInfo]:
-    """Query the cached ``Gst.DeviceMonitor`` and return a :class:`DeviceInfo` list.
+    """Start a ``Gst.DeviceMonitor``, query devices, and return :class:`DeviceInfo` list.
 
-    Uses a long-lived, already-started monitor (see :data:`_MONITORS`) so
-    enumeration is deterministic and cheap: the PipeWire provider is warm, so
-    reads no longer race the ALSA provider and Bluetooth sinks appear reliably.
+    This is the only function in this module that actually imports and uses
+    GStreamer.  It is meant to be called by the media server / audio classes
+    as a thin wrapper around the monitor lifecycle.
 
     Args:
         filter_class: GStreamer device class filter, e.g.
@@ -331,8 +285,52 @@ def gst_monitor_devices(filter_class: str) -> list[DeviceInfo]:
         Exception: Propagates any GStreamer error.
 
     """
-    monitor = _started_monitor(filter_class)
-    return gst_devices_to_device_infos(monitor.get_devices() or [])
+    # Ensure GStreamer is initialized: callers outside the media pipeline
+    # (e.g. the audio-devices REST router) may reach this before any pipeline
+    # has run Gst.init(). It is idempotent, so this is a no-op afterwards.
+    if not Gst.is_initialized():
+        Gst.init(None)
+
+    monitor = Gst.DeviceMonitor()
+    monitor.add_filter(filter_class)
+    monitor.start()
+    try:
+        devices = monitor.get_devices() or []
+        # Device providers start asynchronously. On a PipeWire system the
+        # pipewiredeviceprovider hides the raw ALSA provider once it is up, so
+        # a read taken too early can catch a transient ALSA-only view — which
+        # omits Bluetooth sinks and reports names that pulsesink cannot consume
+        # (see get_audio_device, which resolves PipeWire ``node.name``). Poll
+        # briefly on Linux until a PipeWire node appears (identified by a
+        # ``node.name`` property) so the enumeration is deterministic. Other
+        # platforms keep the immediate read (no such provider hand-off).
+        if sys.platform.startswith("linux"):
+            waited = 0.0
+            while waited < _MONITOR_SETTLE_TIMEOUT_S and not _has_pipewire_node(
+                devices
+            ):
+                time.sleep(_MONITOR_SETTLE_POLL_S)
+                waited += _MONITOR_SETTLE_POLL_S
+                devices = monitor.get_devices() or []
+        return gst_devices_to_device_infos(devices)
+    finally:
+        # Workaround: on macOS (observed on macOS 26 "Tahoe") calling
+        # Gst.DeviceMonitor.stop() can segfault inside
+        # gst_device_provider_stop -> avfdeviceprovider, killing the whole
+        # Python daemon with SIGSEGV before any traceback can be emitted.
+        # The monitor is short-lived (one enumeration at boot) so skipping
+        # the explicit stop is acceptable: the underlying providers are
+        # reclaimed when the Python object is garbage collected and when
+        # the process exits.
+        if sys.platform == "darwin":
+            _logger.debug(
+                "Skipping Gst.DeviceMonitor.stop() on macOS (known crash)",
+            )
+        else:
+            try:
+                monitor.stop()
+            except Exception:  # pragma: no cover - defensive
+                _logger.exception("Gst.DeviceMonitor.stop() failed")
 
 
 def find_audio_device(
