@@ -4,15 +4,35 @@ import logging
 import re
 import subprocess
 from dataclasses import dataclass
+from pathlib import Path
 
 from .volume_control import (
-    SOUND_CARD_NAMES,
     AudioDevice,
     AudioDeviceType,
     VolumeControl,
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _active_sink_card_id() -> str | None:
+    """Return the ALSA card id the ``reachymini_audio_sink`` currently targets.
+
+    Reads ``~/.asoundrc`` and returns the ``hw:CARD=<id>`` card id of the
+    playback sink so the output volume can follow whichever speaker is active
+    (built-in XMOS vs an external USB card selected via ``audio_output.py``).
+    Returns ``None`` when the sink points at the built-in card (``hw:0``) or
+    the file cannot be parsed, in which case the caller falls back to the
+    built-in card.
+    """
+    try:
+        content = (Path.home() / ".asoundrc").read_text(errors="ignore")
+    except OSError:
+        return None
+    match = re.search(r"reachymini_audio_sink\s*\{(.*?)\n\}", content, re.DOTALL)
+    block = match.group(1) if match else content
+    card = re.search(r'pcm\s+"hw:CARD=([^,"]+)', block)
+    return card.group(1) if card else None
 
 try:
     import pulsectl
@@ -35,12 +55,10 @@ class VolumeControlLinux(VolumeControl):
     """
 
     def __post_init__(self) -> None:
-        """Initialize device IDs based on detected audio devices."""
+        """Log the active backend."""
         logger.info(
             f"Using {'pulsectl (PulseAudio/PipeWire)' if _PULSECTL_AVAILABLE else 'amixer (ALSA)'} backend"
         )
-        # TODO: use a property instead to account for dynamic audio devices
-        self.input_device, self.output_device = self._get_input_output_devices()
 
     # ---- Dispatch methods ----
 
@@ -58,24 +76,38 @@ class VolumeControlLinux(VolumeControl):
             return self._pulse_get_all_devices()
         return self._alsa_get_all_devices()
 
-    def _get_input_output_devices(self) -> tuple[AudioDevice, AudioDevice]:
-        """Get the input and output audio devices corresponding to the Reachy Mini Audio sound card.
+    def _get_input_output_devices(
+        self, input_target: str | None, output_target: str | None
+    ) -> tuple[AudioDevice, AudioDevice]:
+        """Get the input and output audio devices to control.
 
-        Always finds the ALSA card first to set index-1 controls to 100%,
-        then returns the appropriate devices for the active backend.
+        Uses the user-selected device when set, else the Reachy Mini Audio
+        sound card, else the platform default. Always initializes the Reachy
+        Mini ALSA card's index-1 controls to 100% (an XMOS hardware quirk),
+        independent of the selection.
 
         Returns:
             A tuple of two AudioDevice: (input_device, output_device).
 
         """
-        # Always resolve the ALSA card and initialize the index-1 controls to 100%
-        alsa_input, alsa_output = self._alsa_get_input_output_devices()
-        self._initialize_device(alsa_input)
-        self._initialize_device(alsa_output)
+        # Resolve the Reachy Mini ALSA card (selection ignored) and set its
+        # index-1 controls to 100% (an XMOS hardware quirk).
+        reachy_input, reachy_output = self._alsa_get_input_output_devices(None, None)
+        self._initialize_device(reachy_input)
+        self._initialize_device(reachy_output)
+        # External USB cards reset to their own (often low) hardware default on
+        # re-enumeration, and `alsactl store` does not reliably survive a cold
+        # power-cycle — so raise the active external sink to 100% at index 0
+        # (the index-1 calls above are a no-op for USB cards).
+        active_card = _active_sink_card_id()
+        if active_card:
+            self._initialize_device(
+                AudioDevice(active_card, active_card, AudioDeviceType.OUTPUT), index=0
+            )
 
         if _PULSECTL_AVAILABLE:
-            return self._pulse_get_input_output_devices()
-        return alsa_input, alsa_output
+            return self._pulse_get_input_output_devices(input_target, output_target)
+        return self._alsa_get_input_output_devices(input_target, output_target)
 
     def _get_device_volume(self, device: AudioDevice) -> int:
         """Get the volume of an audio device.
@@ -144,10 +176,13 @@ class VolumeControlLinux(VolumeControl):
             )
         return devices
 
-    def _pulse_get_input_output_devices(self) -> tuple[AudioDevice, AudioDevice]:
+    def _pulse_get_input_output_devices(
+        self, input_target: str | None, output_target: str | None
+    ) -> tuple[AudioDevice, AudioDevice]:
         """Get the input and output audio devices via pulsectl.
 
-        If not found, falls back to the default sink/source.
+        Uses the user-selected device when set, else the Reachy Mini card,
+        else the default sink/source.
 
         Returns:
             A tuple of two AudioDevice: (input_device, output_device).
@@ -159,22 +194,16 @@ class VolumeControlLinux(VolumeControl):
         # Input and output devices will appear with different IDs
         input_device: AudioDevice | None = None
         output_device: AudioDevice | None = None
-        for device_id, device_name in input_devices.items():
-            if any(
-                [sound_card in device_name.lower() for sound_card in SOUND_CARD_NAMES]
-            ):
-                input_device = AudioDevice(
-                    device_id, device_name, AudioDeviceType.INPUT
-                )
-                break
-        for device_id, device_name in output_devices.items():
-            if any(
-                [sound_card in device_name.lower() for sound_card in SOUND_CARD_NAMES]
-            ):
-                output_device = AudioDevice(
-                    device_id, device_name, AudioDeviceType.OUTPUT
-                )
-                break
+        input_match = self._find_device(input_devices, input_target)
+        if input_match is not None:
+            input_device = AudioDevice(
+                input_match[0], input_match[1], AudioDeviceType.INPUT
+            )
+        output_match = self._find_device(output_devices, output_target)
+        if output_match is not None:
+            output_device = AudioDevice(
+                output_match[0], output_match[1], AudioDeviceType.OUTPUT
+            )
 
         # Fall back to default devices if no matching device found
         if input_device is None:
@@ -325,14 +354,16 @@ class VolumeControlLinux(VolumeControl):
 
         return controls
 
-    def _initialize_device(self, device: AudioDevice) -> None:
-        """Set all ALSA mixer controls with index 1 to 100% for a given audio device.
+    def _initialize_device(self, device: AudioDevice, index: int = 1) -> None:
+        """Set all ALSA mixer controls with the given index to 100% for a given audio device.
 
         Args:
             device: The audio device. If its ID is None, uses the default audio device.
+            index: The ALSA control index to set. The built-in XMOS card uses
+                index-1 controls; plain USB cards expose their control at index 0.
 
         """
-        cmd = self._build_amixer_set_command(device, volume=100, index=1)
+        cmd = self._build_amixer_set_command(device, volume=100, index=index)
         try:
             subprocess.run(
                 cmd,
@@ -388,10 +419,15 @@ class VolumeControlLinux(VolumeControl):
                 f"Could not scan audio devices, aplay or arecord failed with error: {e}"
             )
 
-    def _alsa_get_input_output_devices(self) -> tuple[AudioDevice, AudioDevice]:
+    def _alsa_get_input_output_devices(
+        self, input_target: str | None, output_target: str | None
+    ) -> tuple[AudioDevice, AudioDevice]:
         """Get the input and output audio devices via ALSA.
 
-        If not found, returns default AudioDevices to fall back to default ALSA controls.
+        Uses the user-selected device when set. For output, otherwise follows
+        the active ``reachymini_audio_sink`` card so the volume slider controls
+        whichever speaker is selected (built-in XMOS or an external USB card via
+        the ``.asoundrc`` rewrite). Falls back to the Reachy Mini card / default.
 
         Returns:
             A tuple of two AudioDevice: (input_device, output_device).
@@ -399,18 +435,29 @@ class VolumeControlLinux(VolumeControl):
         """
         devices = self._alsa_get_all_devices()
 
-        for device_id, device_name in devices.items():
-            if any(
-                [sound_card in device_name.lower() for sound_card in SOUND_CARD_NAMES]
-            ):
-                # Input and output devices will appear with the same ID
-                return AudioDevice(
-                    device_id, device_name, AudioDeviceType.INPUT
-                ), AudioDevice(device_id, device_name, AudioDeviceType.OUTPUT)
-
-        return AudioDevice(None, "Default", AudioDeviceType.INPUT), AudioDevice(
-            None, "Default", AudioDeviceType.OUTPUT
+        # Input: an explicit user selection wins, else the Reachy Mini card.
+        input_match = self._find_device(devices, input_target)
+        input_device = (
+            AudioDevice(input_match[0], input_match[1], AudioDeviceType.INPUT)
+            if input_match is not None
+            else AudioDevice(None, "Default", AudioDeviceType.INPUT)
         )
+
+        # Output: an explicit user selection wins; otherwise follow the active
+        # reachymini_audio_sink card (built-in XMOS, or an external USB card
+        # selected via the .asoundrc rewrite) so the volume slider targets it —
+        # amixer takes the card id string directly (``amixer -c <id>``).
+        active_card = _active_sink_card_id() if output_target is None else None
+        if active_card:
+            output_device = AudioDevice(active_card, active_card, AudioDeviceType.OUTPUT)
+        else:
+            output_match = self._find_device(devices, output_target)
+            output_device = (
+                AudioDevice(output_match[0], output_match[1], AudioDeviceType.OUTPUT)
+                if output_match is not None
+                else AudioDevice(None, "Default", AudioDeviceType.OUTPUT)
+            )
+        return input_device, output_device
 
     def _build_amixer_get_command(
         self,
