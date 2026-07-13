@@ -30,7 +30,7 @@ from reachy_mini.media.camera_constants import (
 
 gi.require_version("Gst", "1.0")
 
-from gi.repository import Gst  # noqa: E402
+from gi.repository import GLib, Gst  # noqa: E402
 
 _logger = logging.getLogger(__name__)
 
@@ -267,12 +267,114 @@ def _has_pipewire_node(gst_devices: Any) -> bool:
     return False
 
 
-def gst_monitor_devices(filter_class: str) -> list[DeviceInfo]:
-    """Start a ``Gst.DeviceMonitor``, query devices, and return :class:`DeviceInfo` list.
+# --- Warm device monitors -------------------------------------------------
+#
+# A ``Gst.DeviceMonitor`` created fresh per call is unreliable here: it races
+# the PipeWire vs ALSA providers (so Bluetooth sinks appear only sometimes), and
+# the per-call start/stop churn is enough to knock a marginal Bluetooth speaker
+# off its A2DP link. Instead we keep one long-lived, already-started monitor per
+# filter class and reuse it. Two requirements make this work:
+#   * The monitors run on a *private* ``GMainContext`` serviced by a dedicated
+#     background thread, so their providers' event sources are actually
+#     dispatched (a monitor whose context is never iterated returns an empty /
+#     stale device list) without interfering with the daemon's own GLib loops.
+#   * Each monitor is created and started *on that loop thread* (via an idle
+#     source), so its provider sources bind to the serviced context — avoiding
+#     thread-default-context contention with the running loop.
+# ``get_devices()`` is thread-safe, so readers call it directly from any thread.
+_MONITOR_CTX: Any = None
+_MONITOR_LOOP: Any = None
+_MONITOR_THREAD: Optional[threading.Thread] = None
+_MONITORS: dict[str, Any] = {}
+_MONITORS_LOCK = threading.Lock()
+# Max time to wait for on-loop-thread monitor creation to complete.
+_MONITOR_CREATE_TIMEOUT_S: float = 5.0
 
-    This is the only function in this module that actually imports and uses
-    GStreamer.  It is meant to be called by the media server / audio classes
-    as a thin wrapper around the monitor lifecycle.
+
+def _ensure_monitor_loop() -> None:
+    """Start the private-context GLib main loop thread that services monitors."""
+    global _MONITOR_CTX, _MONITOR_LOOP, _MONITOR_THREAD
+    if _MONITOR_THREAD is not None:
+        return
+    if not Gst.is_initialized():
+        Gst.init(None)
+    _MONITOR_CTX = GLib.MainContext.new()
+    _MONITOR_LOOP = GLib.MainLoop.new(_MONITOR_CTX, False)
+
+    def _run() -> None:
+        _MONITOR_CTX.push_thread_default()
+        _MONITOR_LOOP.run()
+
+    _MONITOR_THREAD = threading.Thread(
+        target=_run, name="gst-device-monitor", daemon=True
+    )
+    _MONITOR_THREAD.start()
+
+
+def _create_monitor_blocking(filter_class: str) -> Any:
+    """Create + start a ``Gst.DeviceMonitor`` on the loop thread; return it."""
+    holder: dict[str, Any] = {}
+    done = threading.Event()
+
+    def _create() -> bool:
+        try:
+            monitor = Gst.DeviceMonitor()
+            monitor.add_filter(filter_class)
+            monitor.start()
+            holder["monitor"] = monitor
+        except Exception as e:  # pragma: no cover - defensive
+            holder["error"] = e
+        finally:
+            done.set()
+        return False  # one-shot idle source
+
+    source = GLib.idle_source_new()
+    source.set_callback(lambda *_: _create())
+    source.attach(_MONITOR_CTX)
+
+    if not done.wait(_MONITOR_CREATE_TIMEOUT_S) or "monitor" not in holder:
+        raise RuntimeError(
+            f"Timed out creating Gst.DeviceMonitor for {filter_class}"
+            + (f": {holder['error']}" if "error" in holder else "")
+        )
+    return holder["monitor"]
+
+
+def _started_monitor(filter_class: str) -> Any:
+    """Return a cached, warm ``Gst.DeviceMonitor`` for *filter_class*."""
+    monitor = _MONITORS.get(filter_class)
+    if monitor is not None:
+        return monitor
+    with _MONITORS_LOCK:
+        monitor = _MONITORS.get(filter_class)
+        if monitor is not None:
+            return monitor
+        _ensure_monitor_loop()
+        monitor = _create_monitor_blocking(filter_class)
+        # Settle once: the PipeWire provider starts asynchronously and hides the
+        # raw ALSA provider once up. Wait briefly on Linux for a PipeWire node so
+        # the first read is not a transient ALSA-only view (which omits Bluetooth
+        # and reports names pulsesink cannot consume). Later reads reuse the warm
+        # monitor with no wait.
+        if sys.platform.startswith("linux"):
+            waited = 0.0
+            while waited < _MONITOR_SETTLE_TIMEOUT_S and not _has_pipewire_node(
+                monitor.get_devices() or []
+            ):
+                time.sleep(_MONITOR_SETTLE_POLL_S)
+                waited += _MONITOR_SETTLE_POLL_S
+        _MONITORS[filter_class] = monitor
+        return monitor
+
+
+def gst_monitor_devices(filter_class: str) -> list[DeviceInfo]:
+    """Query a warm ``Gst.DeviceMonitor`` and return a :class:`DeviceInfo` list.
+
+    Reuses a long-lived monitor serviced by a private GLib main loop (see the
+    module notes above), so enumeration is deterministic and cheap, Bluetooth
+    sinks appear reliably, and there is no per-call provider churn to disturb an
+    active Bluetooth connection. Falls back to a one-shot monitor if the warm
+    monitor cannot be created.
 
     Args:
         filter_class: GStreamer device class filter, e.g.
@@ -281,56 +383,31 @@ def gst_monitor_devices(filter_class: str) -> list[DeviceInfo]:
     Returns:
         List of :class:`DeviceInfo` for all devices matching the filter.
 
-    Raises:
-        Exception: Propagates any GStreamer error.
-
     """
-    # Ensure GStreamer is initialized: callers outside the media pipeline
-    # (e.g. the audio-devices REST router) may reach this before any pipeline
-    # has run Gst.init(). It is idempotent, so this is a no-op afterwards.
-    if not Gst.is_initialized():
-        Gst.init(None)
-
-    monitor = Gst.DeviceMonitor()
-    monitor.add_filter(filter_class)
-    monitor.start()
     try:
-        devices = monitor.get_devices() or []
-        # Device providers start asynchronously. On a PipeWire system the
-        # pipewiredeviceprovider hides the raw ALSA provider once it is up, so
-        # a read taken too early can catch a transient ALSA-only view — which
-        # omits Bluetooth sinks and reports names that pulsesink cannot consume
-        # (see get_audio_device, which resolves PipeWire ``node.name``). Poll
-        # briefly on Linux until a PipeWire node appears (identified by a
-        # ``node.name`` property) so the enumeration is deterministic. Other
-        # platforms keep the immediate read (no such provider hand-off).
-        if sys.platform.startswith("linux"):
-            waited = 0.0
-            while waited < _MONITOR_SETTLE_TIMEOUT_S and not _has_pipewire_node(
-                devices
-            ):
-                time.sleep(_MONITOR_SETTLE_POLL_S)
-                waited += _MONITOR_SETTLE_POLL_S
-                devices = monitor.get_devices() or []
-        return gst_devices_to_device_infos(devices)
-    finally:
-        # Workaround: on macOS (observed on macOS 26 "Tahoe") calling
-        # Gst.DeviceMonitor.stop() can segfault inside
-        # gst_device_provider_stop -> avfdeviceprovider, killing the whole
-        # Python daemon with SIGSEGV before any traceback can be emitted.
-        # The monitor is short-lived (one enumeration at boot) so skipping
-        # the explicit stop is acceptable: the underlying providers are
-        # reclaimed when the Python object is garbage collected and when
-        # the process exits.
-        if sys.platform == "darwin":
-            _logger.debug(
-                "Skipping Gst.DeviceMonitor.stop() on macOS (known crash)",
-            )
-        else:
-            try:
-                monitor.stop()
-            except Exception:  # pragma: no cover - defensive
-                _logger.exception("Gst.DeviceMonitor.stop() failed")
+        monitor = _started_monitor(filter_class)
+        return gst_devices_to_device_infos(monitor.get_devices() or [])
+    except Exception as e:
+        # Fall back to a one-shot monitor so a warm-monitor setup failure never
+        # takes down enumeration entirely.
+        _logger.warning(
+            "Warm device monitor unavailable for %s (%s); using one-shot monitor.",
+            filter_class,
+            e,
+        )
+        if not Gst.is_initialized():
+            Gst.init(None)
+        monitor = Gst.DeviceMonitor()
+        monitor.add_filter(filter_class)
+        monitor.start()
+        try:
+            return gst_devices_to_device_infos(monitor.get_devices() or [])
+        finally:
+            if sys.platform != "darwin":
+                try:
+                    monitor.stop()
+                except Exception:  # pragma: no cover - defensive
+                    _logger.exception("Gst.DeviceMonitor.stop() failed")
 
 
 def find_audio_device(
