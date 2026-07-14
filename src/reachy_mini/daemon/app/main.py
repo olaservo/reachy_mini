@@ -22,7 +22,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 
 from reachy_mini.apps.manager import AppManager
-from reachy_mini.daemon import startup_app_config
+from reachy_mini.daemon import daemon_config
 from reachy_mini.daemon.app.middleware import MaxBodySizeMiddleware
 from reachy_mini.daemon.app.routers import (
     apps,
@@ -181,7 +181,7 @@ def create_app(args: Args, health_check_event: asyncio.Event | None = None) -> F
             # unit boots asleep (--no-wake-up-on-start), so the app is started by
             # a one-shot hook on the first wake-up rather than here.
             on_wake_up_callback = None
-            startup_app = startup_app_config.get_startup_app()
+            startup_app = daemon_config.get_startup_app()
             startup_app_ready = False
             if args.autostart and startup_app:
                 if await ensure_startup_app_installed(

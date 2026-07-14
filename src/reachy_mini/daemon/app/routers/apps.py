@@ -14,7 +14,7 @@ from pydantic import BaseModel
 
 from reachy_mini.apps import AppInfo, SourceKind
 from reachy_mini.apps.manager import AppManager, AppStatus
-from reachy_mini.daemon import startup_app_config
+from reachy_mini.daemon import daemon_config
 from reachy_mini.daemon.app import bg_job_register
 from reachy_mini.daemon.app.dependencies import get_app_manager
 from reachy_mini.daemon.app.startup_app import rearm_startup_app_watcher
@@ -100,8 +100,8 @@ async def remove_app(
 
     # Clear the startup app if it's the one being removed, so the watcher stops
     # trying to launch (and reinstall) it.
-    if startup_app_config.get_startup_app() == app_name:
-        startup_app_config.set_startup_app(None)
+    if daemon_config.get_startup_app() == app_name:
+        daemon_config.set_startup_app(None)
         state = request.app.state
         state.startup_app_antenna_watcher_task = await rearm_startup_app_watcher(
             app_manager, state.daemon, None, state.startup_app_antenna_watcher_task
@@ -180,7 +180,7 @@ class StartupApp(BaseModel):
 @router.get("/startup-app")
 async def get_startup_app() -> StartupApp:
     """Get the app configured to auto-start on wake-up (null if unset)."""
-    return StartupApp(startup_app=startup_app_config.get_startup_app())
+    return StartupApp(startup_app=daemon_config.get_startup_app())
 
 
 @router.put("/startup-app")
@@ -202,7 +202,7 @@ async def set_startup_app(
                 status_code=400, detail=f"App '{name}' is not installed"
             )
 
-    startup_app_config.set_startup_app(name)
+    daemon_config.set_startup_app(name)
 
     state = request.app.state
     state.startup_app_antenna_watcher_task = await rearm_startup_app_watcher(

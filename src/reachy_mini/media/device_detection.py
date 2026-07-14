@@ -300,14 +300,28 @@ def gst_monitor_devices(filter_class: str) -> list[DeviceInfo]:
         Exception: Propagates any GStreamer error.
 
     """
-    # Reuse a recent enumeration when one is fresh: repeated monitor churn
-    # disconnects active Bluetooth devices (see _DEVICE_CACHE notes).
-    now = time.monotonic()
+    # The lock is held across the enumeration, not just around the cache reads:
+    # two callers missing at once would otherwise both start a monitor, which is
+    # exactly the churn the cache exists to prevent (see _DEVICE_CACHE notes).
+    # Serialising means the second caller waits and then takes the fresh result.
     with _DEVICE_CACHE_LOCK:
+        # Reuse a recent enumeration when one is fresh: repeated monitor churn
+        # disconnects active Bluetooth devices (see _DEVICE_CACHE notes).
         cached = _DEVICE_CACHE.get(filter_class)
-        if cached is not None and (now - cached[0]) < _DEVICE_CACHE_TTL_S:
+        if cached is not None and (time.monotonic() - cached[0]) < _DEVICE_CACHE_TTL_S:
             return cached[1]
 
+        infos = _enumerate_devices(filter_class)
+        _DEVICE_CACHE[filter_class] = (time.monotonic(), infos)
+        return infos
+
+
+def _enumerate_devices(filter_class: str) -> list[DeviceInfo]:
+    """Run one ``Gst.DeviceMonitor`` lifecycle and return the devices it sees.
+
+    Callers must hold ``_DEVICE_CACHE_LOCK``: this is the churn-causing operation
+    the cache serialises.
+    """
     # Ensure GStreamer is initialized: callers outside the media pipeline
     # (e.g. the audio-devices REST router) may reach this before any pipeline
     # has run Gst.init(). It is idempotent, so this is a no-op afterwards.
@@ -335,10 +349,7 @@ def gst_monitor_devices(filter_class: str) -> list[DeviceInfo]:
                 time.sleep(_MONITOR_SETTLE_POLL_S)
                 waited += _MONITOR_SETTLE_POLL_S
                 devices = monitor.get_devices() or []
-        infos = gst_devices_to_device_infos(devices)
-        with _DEVICE_CACHE_LOCK:
-            _DEVICE_CACHE[filter_class] = (time.monotonic(), infos)
-        return infos
+        return gst_devices_to_device_infos(devices)
     finally:
         # Workaround: on macOS (observed on macOS 26 "Tahoe") calling
         # Gst.DeviceMonitor.stop() can segfault inside
@@ -542,9 +553,13 @@ def get_audio_device(
     """Detect an audio device by name via ``Gst.DeviceMonitor``.
 
     This is the high-level entry point that both ``GstMediaServer`` and
-    ``GStreamerAudio`` should call.  It handles the full monitor
-    lifecycle (start / query / stop) and delegates to
+    ``GStreamerAudio`` should call.  It runs the monitor lifecycle (subject to
+    the short TTL cache in :func:`gst_monitor_devices`) and delegates to
     :func:`find_audio_device` for the actual matching.
+
+    Enumeration is not free: it can disconnect an active Bluetooth sink, so call
+    this once per pipeline rather than per sound (see
+    ``GStreamerAudio._sink_device_id``).
 
     Args:
         device_type: ``"Source"`` for microphone or ``"Sink"`` for speaker.

@@ -163,31 +163,16 @@ async def set_microphone_volume(volume_req: VolumeRequest) -> VolumeResponse:
     )
 
 
-# ---- Audio output device selection ----
-# Attached to this router (prefix "/volume") so switching the output speaker
-# needs no change to main.py's router registration. Logic lives in
-# audio_output.py. Switching to an external card bypasses the XMOS hardware
-# echo cancellation (see audio_output.py) — use push-to-talk for full duplex.
-from . import audio_output  # noqa: E402
+# ---- External output card volume ----
+# Output *device selection* lives in the audio_devices router (/api/audio-devices)
+# — this router only owns levels. An external card still needs its volume
+# asserted during startup, though; see audio_external_output for why.
+from . import audio_external_output  # noqa: E402
 
 
 @router.on_event("startup")
 async def _assert_external_output_volume() -> None:
-    """Kick off the post-startup external-volume re-assert (see audio_output.py)."""
+    """Kick off the post-startup external-volume re-assert."""
     import asyncio
 
-    asyncio.create_task(audio_output.ensure_external_volume_after_startup())
-
-
-@router.get("/output")
-async def get_audio_output() -> dict[str, list[audio_output.AudioOutputDevice]]:
-    """List selectable audio output devices, with the active one flagged."""
-    return {"devices": audio_output.list_devices()}
-
-
-@router.post("/output/set")
-async def set_audio_output(
-    req: audio_output.SetAudioOutputRequest,
-) -> dict[str, object]:
-    """Switch the daemon's audio output device (restarts the daemon to apply)."""
-    return audio_output.switch(req.id)
+    asyncio.create_task(audio_external_output.ensure_external_volume_after_startup())

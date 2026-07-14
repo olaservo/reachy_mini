@@ -9,7 +9,7 @@ import pytest
 from fastapi import HTTPException
 
 from reachy_mini.apps import AppInfo, SourceKind
-from reachy_mini.daemon import startup_app_config
+from reachy_mini.daemon import daemon_config
 from reachy_mini.daemon.app.routers import apps as apps_router
 from reachy_mini.daemon.app.startup_app import (
     AntennaTouchDetector,
@@ -411,27 +411,27 @@ async def test_launcher_starts_app_once_across_multiple_wakes() -> None:
 def config_file(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
     """Point the startup-app config at a temp file."""
     path = tmp_path / "daemon_config.json"
-    monkeypatch.setattr(startup_app_config, "_config_path", lambda: path)
+    monkeypatch.setattr(daemon_config, "_config_path", lambda: path)
     return path
 
 
 def test_config_round_trip(config_file: Path) -> None:
-    assert startup_app_config.get_startup_app() is None  # missing file
-    startup_app_config.set_startup_app("foo")
-    assert startup_app_config.get_startup_app() == "foo"
-    startup_app_config.set_startup_app("bar")
-    assert startup_app_config.get_startup_app() == "bar"
+    assert daemon_config.get_startup_app() is None  # missing file
+    daemon_config.set_startup_app("foo")
+    assert daemon_config.get_startup_app() == "foo"
+    daemon_config.set_startup_app("bar")
+    assert daemon_config.get_startup_app() == "bar"
 
 
 def test_config_clear(config_file: Path) -> None:
-    startup_app_config.set_startup_app("foo")
-    startup_app_config.set_startup_app(None)
-    assert startup_app_config.get_startup_app() is None
+    daemon_config.set_startup_app("foo")
+    daemon_config.set_startup_app(None)
+    assert daemon_config.get_startup_app() is None
 
 
 def test_config_corrupt_file_reads_as_none(config_file: Path) -> None:
     config_file.write_text("{ not json")
-    assert startup_app_config.get_startup_app() is None
+    assert daemon_config.get_startup_app() is None
 
 
 def _stub_request(daemon: object) -> object:
@@ -451,7 +451,7 @@ async def test_set_startup_app_endpoint_rejects_uninstalled(config_file: Path) -
             apps_router.StartupApp(startup_app="bar"), request, mgr  # type: ignore[arg-type]
         )
     assert exc.value.status_code == 400
-    assert startup_app_config.get_startup_app() is None  # nothing persisted
+    assert daemon_config.get_startup_app() is None  # nothing persisted
 
 
 @pytest.mark.asyncio
@@ -464,7 +464,7 @@ async def test_set_startup_app_endpoint_persists_and_rearms(config_file: Path) -
     task = request.app.state.startup_app_antenna_watcher_task  # type: ignore[attr-defined]
     try:
         assert result.startup_app == "foo"
-        assert startup_app_config.get_startup_app() == "foo"
+        assert daemon_config.get_startup_app() == "foo"
         assert (await apps_router.get_startup_app()).startup_app == "foo"
         # Applied live: a watcher was armed without a restart.
         assert task is not None
@@ -477,14 +477,14 @@ async def test_set_startup_app_endpoint_persists_and_rearms(config_file: Path) -
 
 @pytest.mark.asyncio
 async def test_set_startup_app_endpoint_clears_with_null(config_file: Path) -> None:
-    startup_app_config.set_startup_app("foo")
+    daemon_config.set_startup_app("foo")
     mgr = StubAppManager(installed=["foo"], catalog=[])
     request = _stub_request(StubDaemon())
     result = await apps_router.set_startup_app(
         apps_router.StartupApp(startup_app=None), request, mgr  # type: ignore[arg-type]
     )
     assert result.startup_app is None
-    assert startup_app_config.get_startup_app() is None
+    assert daemon_config.get_startup_app() is None
     assert request.app.state.startup_app_antenna_watcher_task is None  # type: ignore[attr-defined]
 
 
@@ -570,13 +570,13 @@ def test_commanded_motion_false_when_sample_missing() -> None:
 async def test_remove_app_clears_startup_app(
     config_file: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    startup_app_config.set_startup_app("foo")
+    daemon_config.set_startup_app("foo")
     monkeypatch.setattr(apps_router.bg_job_register, "run_command", lambda *a, **k: "j1")
     request = _stub_request(StubDaemon())
     await apps_router.remove_app(
         "foo", request, StubAppManager(installed=["foo"], catalog=[])  # type: ignore[arg-type]
     )
-    assert startup_app_config.get_startup_app() is None
+    assert daemon_config.get_startup_app() is None
     assert request.app.state.startup_app_antenna_watcher_task is None  # type: ignore[attr-defined]
 
 
@@ -584,10 +584,10 @@ async def test_remove_app_clears_startup_app(
 async def test_remove_other_app_keeps_startup_app(
     config_file: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    startup_app_config.set_startup_app("foo")
+    daemon_config.set_startup_app("foo")
     monkeypatch.setattr(apps_router.bg_job_register, "run_command", lambda *a, **k: "j1")
     request = _stub_request(StubDaemon())
     await apps_router.remove_app(
         "bar", request, StubAppManager(installed=["foo", "bar"], catalog=[])  # type: ignore[arg-type]
     )
-    assert startup_app_config.get_startup_app() == "foo"
+    assert daemon_config.get_startup_app() == "foo"

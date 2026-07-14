@@ -4,7 +4,6 @@ import logging
 import re
 import subprocess
 from dataclasses import dataclass
-from pathlib import Path
 
 from .volume_control import (
     AudioDevice,
@@ -15,24 +14,22 @@ from .volume_control import (
 logger = logging.getLogger(__name__)
 
 
-def _active_sink_card_id() -> str | None:
-    """Return the ALSA card id the ``reachymini_audio_sink`` currently targets.
+def _active_external_card() -> str | None:
+    """Return the ALSA card index of the selected external output, else None.
 
-    Reads ``~/.asoundrc`` and returns the ``hw:CARD=<id>`` card id of the
-    playback sink so the output volume can follow whichever speaker is active
-    (built-in XMOS vs an external USB card selected via ``audio_output.py``).
-    Returns ``None`` when the sink points at the built-in card (``hw:0``) or
-    the file cannot be parsed, in which case the caller falls back to the
-    built-in card.
+    Lets the output volume follow whichever external speaker is selected. Returns
+    ``None`` for the built-in XMOS card, for a Bluetooth sink (no ALSA card to
+    set), and when nothing is selected — in each case the caller falls back to the
+    built-in card. Never enumerates devices; see ``audio_external_output`` for why
+    that matters here. Imported lazily to match ``volume_control._selected_targets``
+    and keep the router import graph acyclic.
     """
-    try:
-        content = (Path.home() / ".asoundrc").read_text(errors="ignore")
-    except OSError:
-        return None
-    match = re.search(r"reachymini_audio_sink\s*\{(.*?)\n\}", content, re.DOTALL)
-    block = match.group(1) if match else content
-    card = re.search(r'pcm\s+"hw:CARD=([^,"]+)', block)
-    return card.group(1) if card else None
+    from reachy_mini.daemon.app.routers.audio_external_output import (
+        selected_external_alsa_card,
+    )
+
+    return selected_external_alsa_card()
+
 
 try:
     import pulsectl
@@ -97,9 +94,9 @@ class VolumeControlLinux(VolumeControl):
         self._initialize_device(reachy_output)
         # External USB cards reset to their own (often low) hardware default on
         # re-enumeration, and `alsactl store` does not reliably survive a cold
-        # power-cycle — so raise the active external sink to 100% at index 0
+        # power-cycle — so raise the selected external sink to 100% at index 0
         # (the index-1 calls above are a no-op for USB cards).
-        active_card = _active_sink_card_id()
+        active_card = _active_external_card()
         if active_card:
             self._initialize_device(
                 AudioDevice(active_card, active_card, AudioDeviceType.OUTPUT), index=0
@@ -443,13 +440,16 @@ class VolumeControlLinux(VolumeControl):
             else AudioDevice(None, "Default", AudioDeviceType.INPUT)
         )
 
-        # Output: an explicit user selection wins; otherwise follow the active
-        # reachymini_audio_sink card (built-in XMOS, or an external USB card
-        # selected via the .asoundrc rewrite) so the volume slider targets it —
-        # amixer takes the card id string directly (``amixer -c <id>``).
-        active_card = _active_sink_card_id() if output_target is None else None
+        # Output: when an external card is selected the slider must target that
+        # card rather than the built-in one — amixer takes the card index
+        # directly (``amixer -c <index>``). Everything else (no selection, the
+        # built-in card, or a Bluetooth sink with no ALSA card) falls through to
+        # the name match, which lands on the Reachy Mini card.
+        active_card = _active_external_card()
         if active_card:
-            output_device = AudioDevice(active_card, active_card, AudioDeviceType.OUTPUT)
+            output_device = AudioDevice(
+                active_card, output_target or active_card, AudioDeviceType.OUTPUT
+            )
         else:
             output_match = self._find_device(devices, output_target)
             output_device = (
