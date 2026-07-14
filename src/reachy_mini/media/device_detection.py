@@ -15,6 +15,7 @@ import logging
 import platform
 import re
 import sys
+import threading
 import time
 from dataclasses import dataclass, field
 from typing import Any, List, Optional, Sequence, Tuple
@@ -257,6 +258,20 @@ def gst_devices_to_device_infos(gst_devices: Any) -> list[DeviceInfo]:
 _MONITOR_SETTLE_TIMEOUT_S: float = 3.0
 _MONITOR_SETTLE_POLL_S: float = 0.1
 
+# Short-lived cache of the last enumeration, keyed by filter class.
+#
+# Each Gst.DeviceMonitor start/stop makes the PipeWire/bluez provider acquire and
+# release devices, and that churn is enough to tear down an active A2DP link —
+# observed disconnecting two different Bluetooth speakers. It is self-defeating
+# during an output switch: validating the selection and then building the sink
+# each enumerate, so the second pass drops the very device the first one just
+# found. Reusing a recent result collapses a burst of calls into one monitor, so
+# a Bluetooth device stays connected across select -> pipeline rebuild -> play.
+# The TTL is short enough that a newly connected device still shows up promptly.
+_DEVICE_CACHE_TTL_S: float = 5.0
+_DEVICE_CACHE: dict[str, Tuple[float, list[DeviceInfo]]] = {}
+_DEVICE_CACHE_LOCK = threading.Lock()
+
 
 def _has_pipewire_node(gst_devices: Any) -> bool:
     """True if any ``Gst.Device`` exposes a ``node.name`` (i.e. PipeWire is up)."""
@@ -285,6 +300,14 @@ def gst_monitor_devices(filter_class: str) -> list[DeviceInfo]:
         Exception: Propagates any GStreamer error.
 
     """
+    # Reuse a recent enumeration when one is fresh: repeated monitor churn
+    # disconnects active Bluetooth devices (see _DEVICE_CACHE notes).
+    now = time.monotonic()
+    with _DEVICE_CACHE_LOCK:
+        cached = _DEVICE_CACHE.get(filter_class)
+        if cached is not None and (now - cached[0]) < _DEVICE_CACHE_TTL_S:
+            return cached[1]
+
     # Ensure GStreamer is initialized: callers outside the media pipeline
     # (e.g. the audio-devices REST router) may reach this before any pipeline
     # has run Gst.init(). It is idempotent, so this is a no-op afterwards.
@@ -312,7 +335,10 @@ def gst_monitor_devices(filter_class: str) -> list[DeviceInfo]:
                 time.sleep(_MONITOR_SETTLE_POLL_S)
                 waited += _MONITOR_SETTLE_POLL_S
                 devices = monitor.get_devices() or []
-        return gst_devices_to_device_infos(devices)
+        infos = gst_devices_to_device_infos(devices)
+        with _DEVICE_CACHE_LOCK:
+            _DEVICE_CACHE[filter_class] = (time.monotonic(), infos)
+        return infos
     finally:
         # Workaround: on macOS (observed on macOS 26 "Tahoe") calling
         # Gst.DeviceMonitor.stop() can segfault inside
