@@ -56,7 +56,7 @@ import platform
 import time
 from collections.abc import Callable
 from threading import Thread
-from typing import Optional
+from typing import Any, Optional
 
 import numpy as np
 
@@ -78,6 +78,10 @@ gi.require_version("Gst", "1.0")
 gi.require_version("GstApp", "1.0")
 
 from gi.repository import GLib, Gst  # noqa: E402
+
+# Sentinel for "sink id not looked up yet" (None is a valid result meaning
+# "no matching card", which must not trigger a re-lookup).
+_UNRESOLVED = object()
 
 
 class GStreamerAudio(AudioBase):
@@ -120,6 +124,9 @@ class GStreamerAudio(AudioBase):
         # _build_audiosink_element, so they must be set before those run.
         self._input_device = input_device
         self._output_device = output_device
+
+        # Resolved sink id, looked up once per instance (see _sink_device_id).
+        self._resolved_sink_id: Any = _UNRESOLVED
 
         self._head_wobbler: Optional[HeadWobbler] = None
 
@@ -239,6 +246,23 @@ class GStreamerAudio(AudioBase):
         audioconvert.link(audioresample)
         audioresample.link(self._appsink_audio)
 
+    def _sink_device_id(self) -> Optional[str]:
+        """Resolve the output device id, once per instance.
+
+        ``get_audio_device`` runs a ``Gst.DeviceMonitor``, and that enumeration
+        disconnects an active Bluetooth sink (the provider acquires and releases
+        the device). Every played sound builds its own sink, so resolving per
+        call would drop the Bluetooth speaker on the first sound and every one
+        after. The device selection cannot change without rebuilding the
+        pipeline — which constructs a new instance — so one lookup per instance
+        is sufficient, and playback never re-enumerates.
+        """
+        if self._resolved_sink_id is _UNRESOLVED:
+            self._resolved_sink_id = get_audio_device(
+                "Sink", target_name=self._output_device or DEFAULT_AUDIO_TARGET
+            )
+        return self._resolved_sink_id
+
     def _build_audiosink_element(self) -> Gst.Element:
         """Create a platform-appropriate audio sink element."""
         audiosink: Optional[Gst.Element] = None
@@ -251,9 +275,7 @@ class GStreamerAudio(AudioBase):
             audiosink.set_property("device", "reachymini_audio_sink")
             self.logger.info("Using .asoundrc audio sink: reachymini_audio_sink")
         else:
-            id_audio_card = get_audio_device(
-                "Sink", target_name=self._output_device or DEFAULT_AUDIO_TARGET
-            )
+            id_audio_card = self._sink_device_id()
 
             if id_audio_card is None:
                 self.logger.warning(
