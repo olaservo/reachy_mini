@@ -623,7 +623,7 @@
       },
       "post": {
         "summary": "Set Selected Output Device",
-        "description": "Set the output device to use.",
+        "description": "Set the output device to use. The selection persists across restarts.",
         "operationId": "set_selected_output_device_api_audio_devices_output_selected_post",
         "requestBody": {
           "content": {
@@ -696,7 +696,7 @@
       },
       "post": {
         "summary": "Set Selected Input Device",
-        "description": "Set the input device to use.",
+        "description": "Set the input device to use. The selection persists across restarts.",
         "operationId": "set_selected_input_device_api_audio_devices_input_selected_post",
         "requestBody": {
           "content": {
@@ -2614,73 +2614,6 @@
         }
       }
     },
-    "/api/volume/output": {
-      "get": {
-        "summary": "Get Audio Output",
-        "description": "List selectable audio output devices, with the active one flagged.",
-        "operationId": "get_audio_output_api_volume_output_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "additionalProperties": {
-                    "items": {
-                      "$ref": "#/components/schemas/AudioOutputDevice"
-                    },
-                    "type": "array"
-                  },
-                  "type": "object",
-                  "title": "Response Get Audio Output Api Volume Output Get"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/volume/output/set": {
-      "post": {
-        "summary": "Set Audio Output",
-        "description": "Switch the daemon's audio output device (restarts the daemon to apply).",
-        "operationId": "set_audio_output_api_volume_output_set_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SetAudioOutputRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "additionalProperties": true,
-                  "type": "object",
-                  "title": "Response Set Audio Output Api Volume Output Set Post"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/": {
       "get": {
         "summary": "Dashboard",
@@ -2888,11 +2821,30 @@
         "title": "ApplyAudioConfigResponse",
         "description": "Response body for ``POST /audio/config/apply``."
       },
+      "AudioDevice": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "aec": {
+            "type": "boolean",
+            "title": "Aec"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "aec"
+        ],
+        "title": "AudioDevice",
+        "description": "A selectable audio device."
+      },
       "AudioDeviceListResponse": {
         "properties": {
           "devices": {
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/AudioDevice"
             },
             "type": "array",
             "title": "Devices"
@@ -2904,35 +2856,6 @@
         ],
         "title": "AudioDeviceListResponse",
         "description": "Response model for listing audio devices."
-      },
-      "AudioOutputDevice": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "label": {
-            "type": "string",
-            "title": "Label"
-          },
-          "aec": {
-            "type": "boolean",
-            "title": "Aec"
-          },
-          "active": {
-            "type": "boolean",
-            "title": "Active"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "label",
-          "aec",
-          "active"
-        ],
-        "title": "AudioOutputDevice",
-        "description": "A selectable audio output device."
       },
       "AudioParamPair": {
         "properties": {
@@ -3939,20 +3862,6 @@
         ],
         "title": "SelectedDeviceResponse",
         "description": "Response model for the currently selected device."
-      },
-      "SetAudioOutputRequest": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id"
-        ],
-        "title": "SetAudioOutputRequest",
-        "description": "Request body for switching the output device."
       },
       "SetDeviceRequest": {
         "properties": {
