@@ -8,6 +8,8 @@ be set over the REST API instead of only via a CLI flag.
 
 import json
 import logging
+import os
+import threading
 from pathlib import Path
 
 import platformdirs
@@ -20,6 +22,11 @@ _TURN_KEY = "turn_enabled"
 _FIRST_WAKE_UP_KEY = "first_wake_up_completed"
 # equalizer-10bands accepts per-band gains in [-24, +12] dB.
 _EQ_GAIN_MIN, _EQ_GAIN_MAX = -24.0, 12.0
+
+# Serialises _update()'s read-modify-write: all settings share one file, so
+# two keys written concurrently would read the same base dict and the later
+# write would drop the earlier one.
+_LOCK = threading.Lock()
 
 
 def _is_valid_gain(value: object) -> bool:
@@ -126,21 +133,26 @@ def _update(key: str, value: object | None) -> None:
     Other keys are preserved. May raise OSError on a write error; callers
     that must never raise (e.g. the daemon command loop) wrap it themselves.
     """
-    config = _read()
-    if value is None:
-        config.pop(key, None)
-    else:
-        config[key] = value
+    with _LOCK:
+        config = _read()
+        if value is None:
+            config.pop(key, None)
+        else:
+            config[key] = value
 
-    path = _config_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    # Write to a sibling then rename: a crash mid-write would otherwise
-    # truncate the file, and the next _update() rebuilds it from the empty
-    # dict _read() returns for unparseable JSON, dropping every other key.
-    tmp = path.with_suffix(".json.tmp")
-    with tmp.open("w") as f:
-        json.dump(config, f, indent=2)
-    tmp.replace(path)
+        path = _config_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        # Write to a sibling then rename: a crash mid-write would otherwise
+        # truncate the file, and the next _update() rebuilds it from the empty
+        # dict _read() returns for unparseable JSON, dropping every other key.
+        tmp = path.with_suffix(".json.tmp")
+        with tmp.open("w") as f:
+            json.dump(config, f, indent=2)
+            # fsync before the rename: on a hard power-off the rename can
+            # otherwise survive while the data does not, leaving an empty file.
+            f.flush()
+            os.fsync(f.fileno())
+        tmp.replace(path)
 
 
 def set_startup_app(name: str | None) -> None:
