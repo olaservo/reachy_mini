@@ -1,13 +1,24 @@
-"""Persisted daemon config for the startup app.
+"""Persisted daemon config.
 
-The startup app (launched on the robot's first wake-up) is stored in a small
-JSON file in the user's config dir, so the choice survives reboots and app
-updates, stays per-user (not shared across OS accounts on one machine), and can
-be set over the REST API instead of only via a CLI flag.
+A small JSON file in the user's config dir holding daemon-level choices that must
+outlive a restart. The startup app (launched on the robot's first wake-up) lives
+here today; more settings are on the way (e.g. the speaker-EQ gains in #1267).
+Persisting means a choice survives reboots and app updates, stays per-user (not
+shared across OS accounts on one machine), and can be set over the REST API
+instead of only via a CLI flag.
+
+Because several settings share one file, the read-modify-write in
+:func:`_set_str` is serialised under ``_LOCK``: without it, two settings written
+concurrently would lose one of the two. The write itself goes to a temp file
+that is atomically renamed into place, so a power loss mid-write (the robot is
+hard-powered-off routinely) leaves the previous config intact rather than a
+truncated one.
 """
 
 import json
 import logging
+import os
+import threading
 from pathlib import Path
 
 import platformdirs
@@ -33,6 +44,9 @@ def _is_valid_gain(value: object) -> bool:
         and _EQ_GAIN_MIN <= value <= _EQ_GAIN_MAX
     )
 
+# Serialises read-modify-write: all settings share one file.
+_LOCK = threading.Lock()
+
 
 def _config_path() -> Path:
     """Path to the daemon config file in the user's config dir."""
@@ -53,10 +67,41 @@ def _read() -> dict:  # type: ignore[type-arg]
         return {}
 
 
+def _get_str(key: str) -> str | None:
+    """Return a persisted string setting, or None if unset or not a string."""
+    value = _read().get(key)
+    return value if isinstance(value, str) else None
+
+
+def _set_str(key: str, value: str | None) -> None:
+    """Persist a string setting; a falsy value clears the key.
+
+    Held under ``_LOCK`` so a concurrent write to a different key cannot clobber
+    this one (the two would otherwise read the same base dict and race to write).
+    """
+    with _LOCK:
+        config = _read()
+        if value:
+            config[key] = value
+        else:
+            config.pop(key, None)
+
+        path = _config_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        # Write to a temp file and atomically rename: a crash mid-write then
+        # leaves the old config in place, not a half-written one. fsync before
+        # the rename so the bytes are durable before the rename that exposes them.
+        tmp = path.with_name(f"{path.name}.tmp")
+        with tmp.open("w") as f:
+            json.dump(config, f, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, path)
+
+
 def get_startup_app() -> str | None:
     """Return the persisted startup app name, or None if unset."""
-    value = _read().get(_KEY)
-    return value if isinstance(value, str) else None
+    return _get_str(_KEY)
 
 
 def get_speaker_eq_gains() -> list[float] | None:
@@ -89,13 +134,4 @@ def get_speaker_eq_gains() -> list[float] | None:
 
 def set_startup_app(name: str | None) -> None:
     """Persist the startup app name; a falsy name clears it."""
-    config = _read()
-    if name:
-        config[_KEY] = name
-    else:
-        config.pop(_KEY, None)
-
-    path = _config_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w") as f:
-        json.dump(config, f, indent=2)
+    _set_str(_KEY, name)

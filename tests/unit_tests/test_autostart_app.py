@@ -434,6 +434,30 @@ def test_config_corrupt_file_reads_as_none(config_file: Path) -> None:
     assert startup_app_config.get_startup_app() is None
 
 
+def test_setting_startup_app_preserves_other_keys(config_file: Path) -> None:
+    # Several settings share one file, so a write must not drop keys it does not
+    # own. Simulate another setting already persisted, then write ours.
+    import json
+
+    config_file.write_text(json.dumps({"other_setting": [1.0, 2.0, 3.0]}))
+    startup_app_config.set_startup_app("foo")
+
+    data = json.loads(config_file.read_text())
+    assert data["startup_app"] == "foo"
+    assert data["other_setting"] == [1.0, 2.0, 3.0]  # untouched
+
+    startup_app_config.set_startup_app(None)  # clearing ours leaves the other
+    assert json.loads(config_file.read_text()) == {"other_setting": [1.0, 2.0, 3.0]}
+
+
+def test_write_leaves_no_temp_file(config_file: Path) -> None:
+    # The write goes via a temp file that is atomically renamed; it must not be
+    # left behind.
+    startup_app_config.set_startup_app("foo")
+    assert not (config_file.parent / f"{config_file.name}.tmp").exists()
+    assert list(config_file.parent.glob("*.tmp")) == []
+
+
 def _stub_request(daemon: object) -> object:
     """Minimal Request stand-in exposing app.state.{daemon,watcher task}."""
     state = types.SimpleNamespace(
