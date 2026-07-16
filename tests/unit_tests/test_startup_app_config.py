@@ -7,6 +7,7 @@ flag). Exercise them directly against a tmp config path (monkeypatched
 """
 
 import json
+import threading
 from pathlib import Path
 
 import pytest
@@ -83,6 +84,28 @@ def test_update_raises_on_write_error(tmp_path: Path, monkeypatch: pytest.Monkey
     )
     with pytest.raises(OSError):
         startup_app_config._update("some_key", "value")
+
+
+def test_update_concurrent_writes_keep_every_key(config_path: Path):
+    # Regression: the read-modify-write used to be unlocked, so two keys
+    # written concurrently could read the same base dict and the later
+    # write would drop the earlier one.
+    n_threads, n_rounds = 8, 25
+    barrier = threading.Barrier(n_threads)
+
+    def hammer(i: int) -> None:
+        barrier.wait()
+        for round_ in range(n_rounds):
+            startup_app_config._update(f"key_{i}", round_)
+
+    threads = [threading.Thread(target=hammer, args=(i,)) for i in range(n_threads)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    final = n_rounds - 1
+    assert _stored(config_path) == {f"key_{i}": final for i in range(n_threads)}
 
 
 # ─── _get_bool ───────────────────────────────────────────────────────────
