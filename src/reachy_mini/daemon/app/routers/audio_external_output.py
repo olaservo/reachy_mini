@@ -24,6 +24,7 @@ import logging
 import re
 import shlex
 import subprocess
+import threading
 
 from .audio_devices import get_local_selected_output
 
@@ -45,6 +46,13 @@ _STARTUP_VOLUME_DELAYS = (10.0, 20.0, 30.0, 45.0)
 
 # Cache of the last name -> card lookup, so the volume path does not run
 # `aplay -l` on every call. Keyed by the selection it was resolved for.
+#
+# Guarded by a lock because it is read/written from more than one thread: the
+# synchronous volume path (event loop, and the backend's WebRTC handler on its
+# own loop) and the startup re-assert (a worker thread via asyncio.to_thread).
+# Without it, a reader could see _cache_valid set before _cached_card is,
+# yielding a stale card index for one best-effort volume op.
+_cache_lock = threading.Lock()
 _cached_card: str | None = None
 _cached_for: str | None = None
 _cache_valid = False
@@ -116,15 +124,18 @@ def selected_external_alsa_card() -> str | None:
     """Return the selected external output's ALSA card index, or None.
 
     Safe to call from any path: it never enumerates devices, and the ``aplay -l``
-    lookup is cached until the selection changes.
+    lookup is cached until the selection changes. The lock is held across the
+    resolve so concurrent callers single-flight it (like the enumeration cache in
+    device_detection) rather than each shelling ``aplay -l``.
     """
     global _cached_card, _cached_for, _cache_valid
     selected = get_local_selected_output()
-    if not _cache_valid or _cached_for != selected:
-        _cached_card = _resolve_alsa_card(selected)
-        _cached_for = selected
-        _cache_valid = True
-    return _cached_card
+    with _cache_lock:
+        if not _cache_valid or _cached_for != selected:
+            _cached_card = _resolve_alsa_card(selected)
+            _cached_for = selected
+            _cache_valid = True
+        return _cached_card
 
 
 def _raise_card_volume(card_id: str) -> None:

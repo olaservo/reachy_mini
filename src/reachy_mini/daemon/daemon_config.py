@@ -8,11 +8,15 @@ can be set over the REST API instead of only via a CLI flag.
 
 Every setting is a key in one file, so the read-modify-write in :func:`_set_str`
 is serialised under ``_LOCK``: without it, two settings written concurrently
-would lose one of the two.
+would lose one of the two. The write itself goes to a temp file that is
+atomically renamed into place, so a power loss mid-write (the robot is
+hard-powered-off routinely) leaves the previous config intact rather than a
+truncated one.
 """
 
 import json
 import logging
+import os
 import threading
 from pathlib import Path
 
@@ -64,8 +68,15 @@ def _set_str(key: str, value: str | None) -> None:
 
         path = _config_path()
         path.parent.mkdir(parents=True, exist_ok=True)
-        with path.open("w") as f:
+        # Write to a temp file and atomically rename: a crash mid-write then
+        # leaves the old config in place, not a half-written one. fsync before
+        # the rename so the bytes are durable before the rename that exposes them.
+        tmp = path.with_name(f"{path.name}.tmp")
+        with tmp.open("w") as f:
             json.dump(config, f, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, path)
 
 
 def get_startup_app() -> str | None:
