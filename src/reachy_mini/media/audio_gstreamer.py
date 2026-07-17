@@ -175,7 +175,21 @@ class GStreamerAudio(AudioBase):
                 "Source", target_name=self._input_device or DEFAULT_AUDIO_TARGET
             )
 
-            if id_audio_card is None:
+            if id_audio_card is None and has_reachymini_asoundrc():
+                # Selected mic could not be resolved (missing, or PipeWire is
+                # unhealthy). Fall back to the built-in XMOS ALSA source
+                # (hardware AEC) rather than a pulsesrc pointed at a ghost, which
+                # spins the pulse client and can abort the process. Reaching here
+                # implies a selection was set (the no-selection wireless case is
+                # handled above), so this is the selected-but-missing path.
+                self.logger.warning(
+                    "Selected input %r not found (PipeWire unhealthy?); "
+                    "falling back to the built-in .asoundrc source.",
+                    self._input_device,
+                )
+                audiosrc = Gst.ElementFactory.make("alsasrc")
+                audiosrc.set_property("device", "reachymini_audio_src")
+            elif id_audio_card is None:
                 self.logger.warning(
                     "No specific audio card found, using default audio source."
                 )
@@ -263,37 +277,61 @@ class GStreamerAudio(AudioBase):
             )
         return self._resolved_sink_id
 
+    @staticmethod
+    def _audiosink_spec(
+        resolved_id: Optional[str], system: str, has_asoundrc: bool
+    ) -> tuple[str, Optional[tuple[str, str]]]:
+        """Choose ``(factory, (property, value) | None)`` for the playback sink.
+
+        Pure decision logic (no GStreamer), so the matrix is unit-testable.
+
+        ``resolved_id is None`` means no specific device was resolved — either
+        nothing is selected, or the selected node could not be found (a USB/BT
+        sink that vanished, or PipeWire is unhealthy). In that case prefer the
+        built-in ``.asoundrc`` ALSA sink when present: it talks to the hardware
+        directly and keeps working even when PipeWire has lost its devices —
+        unlike a ``pulsesink`` pointed at a missing node (whose pulse client
+        spins trying to connect, leaks FDs, and can abort the process) or
+        ``autoaudiosink`` (which lands on the silent PipeWire default).
+        """
+        if resolved_id is None:
+            if has_asoundrc:
+                return "alsasink", ("device", "reachymini_audio_sink")
+            return "autoaudiosink", None
+        if system == "Windows":
+            return "wasapi2sink", ("device", resolved_id)
+        if system == "Darwin":
+            return "osxaudiosink", ("unique-id", resolved_id)
+        return "pulsesink", ("device", resolved_id)
+
     def _build_audiosink_element(self) -> Gst.Element:
         """Create a platform-appropriate audio sink element."""
-        audiosink: Optional[Gst.Element] = None
-
-        # An explicit user selection overrides the .asoundrc / auto-detected
-        # sink. It is resolved platform-appropriately by get_audio_device (via
-        # its target_name), so the right element is used on every OS.
+        # No selection on the wireless robot: use the built-in .asoundrc sink
+        # directly, without enumerating (see _sink_device_id for why enumeration
+        # is costly). Any selection, or a non-wireless host, goes through the
+        # resolve + spec path.
         if self._output_device is None and has_reachymini_asoundrc():
-            audiosink = Gst.ElementFactory.make("alsasink")
-            audiosink.set_property("device", "reachymini_audio_sink")
+            factory, prop = "alsasink", ("device", "reachymini_audio_sink")
             self.logger.info("Using .asoundrc audio sink: reachymini_audio_sink")
         else:
-            id_audio_card = self._sink_device_id()
-
-            if id_audio_card is None:
+            factory, prop = self._audiosink_spec(
+                self._sink_device_id(), platform.system(), has_reachymini_asoundrc()
+            )
+            if factory == "alsasink":
+                # Selected device unresolved -> fell back to the built-in sink.
                 self.logger.warning(
-                    "No specific audio card found, using default audio sink."
+                    "Selected output %r not found (PipeWire unhealthy?); "
+                    "falling back to the built-in .asoundrc sink.",
+                    self._output_device,
                 )
-                audiosink = Gst.ElementFactory.make("autoaudiosink")
-            elif platform.system() == "Windows":
-                audiosink = Gst.ElementFactory.make("wasapi2sink")
-                audiosink.set_property("device", id_audio_card)
-            elif platform.system() == "Darwin":
-                audiosink = Gst.ElementFactory.make("osxaudiosink")
-                audiosink.set_property("unique-id", id_audio_card)
             else:
-                audiosink = Gst.ElementFactory.make("pulsesink")
-                audiosink.set_property("device", f"{id_audio_card}")
+                self.logger.info("Using audio sink: %s %s", factory, prop)
 
+        audiosink = Gst.ElementFactory.make(factory)
         if audiosink is None:
             raise RuntimeError("Failed to create audio sink element")
+        if prop is not None:
+            audiosink.set_property(prop[0], prop[1])
 
         if audiosink.find_property("buffer-time") is not None:
             audiosink.set_property("buffer-time", self.PLAYBACK_SINK_BUFFER_TIME_US)
