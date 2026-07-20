@@ -1,57 +1,2668 @@
 {
   "stats": {
-    "total": 258,
-    "passed": 255,
-    "new": 8,
-    "skipped": 3
+    "total": 701,
+    "new": 443,
+    "passed": 685,
+    "skipped": 15,
+    "failed": 1
   },
-  "status": "passed",
+  "status": "failed",
   "newTests": [
     {
-      "id": "b9afbe6dfd0757b0fef74e760be8c4bc",
-      "name": "test_unknown_app_not_ready_and_not_installed",
+      "id": "7ac96e3ed2efc467732ca472b4462649",
+      "name": "test_goto_sleep_completes",
       "status": "passed",
       "duration": 1
     },
     {
-      "id": "cc1b6fe4257f38046f33eabbf633dd78",
-      "name": "test_start_calls_start_app",
+      "id": "6e7219de25e2ed53e739fcfba693c2ac",
+      "name": "test_build_pypi_prerelease_pip_fallback",
       "status": "passed",
       "duration": 0
     },
     {
-      "id": "a11b2164bfd2fef112e94102ae48368d",
-      "name": "test_missing_app_installed_from_catalog",
+      "id": "cf59cd9a16b7e9a3de72dafdb1595baf",
+      "name": "test_install_source_editable",
       "status": "passed",
       "duration": 0
     },
     {
-      "id": "aa18f0801fd930021e7de1b645207713",
-      "name": "test_launcher_starts_app_once_across_multiple_wakes",
+      "id": "9b52b000c65d4b80274a486685a297ba",
+      "name": "test_apps_start_and_stop",
       "status": "passed",
       "duration": 0
     },
     {
-      "id": "e3efd1eff23b549e799f05feea463534",
-      "name": "test_to_plain_json_normalizes_hf_objects",
+      "id": "2c75f8498f66a9a3d211a19afd39d114",
+      "name": "test_play_sound_without_daemon_url_makes_no_request",
       "status": "passed",
       "duration": 1
     },
     {
-      "id": "d6d6a769fc64b13e0c7f7f325a122cc7",
-      "name": "test_install_failure_returns_false",
+      "id": "91cbf9adbf8322fcbac3e8b39bea3ded",
+      "name": "test_error_reason_lives_in_data",
       "status": "passed",
       "duration": 0
     },
     {
-      "id": "383a6ae4c01786cc383c537c513539a0",
-      "name": "test_already_installed_is_ready_without_install",
+      "id": "054ad12cbea92501fb75b8346668ed9e",
+      "name": "test_antenna_touch_detector_triggers_once_until_release",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "757d3d70123ab70daad56ec4d5c0ef4f",
+      "name": "test_oauth_begin_redirects",
+      "status": "passed",
+      "duration": 17
+    },
+    {
+      "id": "ed7933c5123bce86182edf8a4724b3b6",
+      "name": "test_start_recording",
       "status": "passed",
       "duration": 1
     },
     {
-      "id": "4d068c58f4cd1b27a953b45a914cae7d",
-      "name": "test_start_failure_is_swallowed",
+      "id": "a689ce3131f7e92647fe5917c4b79d3b",
+      "name": "test_get_relay_status_reports_stopped_without_instance",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "6b0ebedd3ad3ecee6db13aacd179c5ab",
+      "name": "test_update_target_head_joints_from_ik",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "c05806f6be57370370e15f3d0b9e6098",
+      "name": "test_info_found",
+      "status": "passed",
+      "duration": 13
+    },
+    {
+      "id": "c600ba7db31091796c73d2ef0a0536ca",
+      "name": "test_copy_install_reads_site_packages",
+      "status": "passed",
+      "duration": 2
+    },
+    {
+      "id": "b554c68a50803524fdca01db04a65862",
+      "name": "test_central_peer_translates_session_id_to_local",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "3413228fedb6f1ff6152fca2d1a5acf4",
+      "name": "test_on_new_transceiver_sendrecv_for_audio",
+      "status": "passed",
+      "duration": 2
+    },
+    {
+      "id": "254a3b9228cb2254aef7b2f3471277f2",
+      "name": "test_get_string_none_for_missing_or_non_string",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "af5c16ababc6fedadba0febcbc55131c",
+      "name": "test_keep_remote_acquire_raises_if_local_held",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "6931a681ca0dc3bfab92affa40cf7e0c",
+      "name": "test_move_upload_json_happy",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "d1961f9b20b243d5540b093ead48932c",
+      "name": "test_move_finish_unknown_slot",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "745a833da4377cd2788e38afc1c6e38e",
+      "name": "test_move_chunk_out_of_order_drops_slot",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "a786bbb2f0c7bf131655587a285dd291",
+      "name": "test_test_sound_success",
+      "status": "passed",
+      "duration": 10
+    },
+    {
+      "id": "ac8f037c8ae47fcd195b38ced7167c85",
+      "name": "test_tear_down_active_sessions_notifies_both_and_clears",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "b5c5326f1930fa13dc6838563de76111",
+      "name": "test_simulated_apply_identity_write",
+      "status": "passed",
+      "duration": 105
+    },
+    {
+      "id": "7fccb4007918e6d067f1c889c2a268cb",
+      "name": "test_async_play_uploaded_move_happy",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "b846c33e1a2fae2e76ffcb88a4e2b20b",
+      "name": "test_update_with_apps_venv",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "0993f0ca32b9c67bbf92f30371eb2ecc",
+      "name": "test_factory_returns_correct_subclass[pulsectl]",
+      "status": "skipped",
+      "duration": 0
+    },
+    {
+      "id": "1b0544d07684f313528a9facdf73ed58",
+      "name": "test_build_git_ref_pip_fallback",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "206f7303074a8f94b3711c56f72e7dd1",
+      "name": "test_set_speech_offsets_sets_ik_required",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "2584b1d9e6e4f8029e2b071c6165878e",
+      "name": "test_find_serial_port_wireless_missing",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "23bbf28c2e940a322d241fb88cc6ff5a",
+      "name": "test_move_start_too_many_active_slots_refused",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "d03f2e3757d51b73f343e65316425018",
+      "name": "test_path_exists_rmtree_called[/cache/reset-apps-Applications virtual environment removed-Virtual environment directory already empty]",
+      "status": "passed",
+      "duration": 8
+    },
+    {
+      "id": "32b3ca51341d92af172cad69ddea4e59",
+      "name": "test_get_present_head_pose",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "e84e42723f6f7ff68126041be5a64bc0",
+      "name": "test_stop_recording_without_publisher_warns",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "46a6bddca7986e99d1535db764471022",
+      "name": "test_out_of_range_is_clamped",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "7c6c6e37e8038f581793e74a990c203e",
+      "name": "test_oauth_start_success",
+      "status": "passed",
+      "duration": 18
+    },
+    {
+      "id": "5114e5ab463b8f289df785d6a609f077",
+      "name": "test_play_sound[MediaBackend.LOCAL]",
+      "status": "passed",
+      "duration": 4135
+    },
+    {
+      "id": "fc6e25b3f432cc3ffdcb0bd28a17dc46",
+      "name": "test_startsession_acquires_lock_when_free",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "d96ab4ca2383b3641d28090b4d518172",
+      "name": "test_robot_backend_status_reflects_live_readiness",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "c838ddeac25e0a3310ae2b7bd8ffa321",
+      "name": "test_on_deep_element_added_captures_webrtcbin",
+      "status": "passed",
+      "duration": 2
+    },
+    {
+      "id": "957dd1eca7c1043dab212a5ece7baa5b",
+      "name": "test_set_head_tracking_enabled_available",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "f2116c8bb2c04cc37b3008ce48ccbeae",
+      "name": "test_keep_remote_acquire_from_free",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "db24c0cfbe906ad80df8de0e76ad3c69",
+      "name": "test_exchange_code_invalid_session",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "068bea93765e65d78535fbf9e8b660d4",
+      "name": "test_get_output_volume_failure",
+      "status": "passed",
+      "duration": 9
+    },
+    {
+      "id": "7165dee3c54225f10a54bf14c2e6ee06",
+      "name": "test_simulated_read_values_decode",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "e9280f3b270592b18771da757d481add",
+      "name": "test_delete_sound_reports_ok",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "f4362b728ed16633ed97da08e2c439b4",
+      "name": "test_validate_ref_invalid",
+      "status": "passed",
+      "duration": 12
+    },
+    {
+      "id": "0c737116b0112e25f38953068ca383e2",
+      "name": "test_audio_chunk_out_of_order_drops_slot",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "2c05054dcedee0dad6bfad00836e86ed",
+      "name": "test_udp_camera_frame_round_trip",
+      "status": "passed",
+      "duration": 8
+    },
+    {
+      "id": "2b8b0996368e4294b919b8e64a543151",
+      "name": "test_set_and_restore_output_volume[alsa]",
+      "status": "skipped",
+      "duration": 0
+    },
+    {
+      "id": "8e495c705468800787361c0bd958ca6f",
+      "name": "test_audio_finish_count_mismatch_writes_nothing",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "972835237eb0eeb1acc049b6dc6f417f",
+      "name": "test_daemon_check_not_running_spawns_sim",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "629c1cb80dd301a93b8cb5e2f35e75a1",
+      "name": "test_start_update_unsupported",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "973195617a0c1a627ca124e3f7201cd6",
+      "name": "test_eq_bin_prevents_clipping",
+      "status": "passed",
+      "duration": 3
+    },
+    {
+      "id": "3dd984133de0160b9a9cabf04ca5039b",
+      "name": "test_is_loopback_host_true_for_loopback_addresses[[::1]]",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "1d68681ae1b38e5d157c275df1437ed8",
+      "name": "test_cancel_oauth_session",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "8a8484c37c1570f62d51e6fb0befbf21",
+      "name": "test_oauth_session_delete_success",
+      "status": "passed",
+      "duration": 16
+    },
+    {
+      "id": "cd02000c19fe19de1b1ea338b52bfbb4",
+      "name": "test_append_record",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "6c306c3e9dc873613bcc2f5ba02cd0e4",
+      "name": "test_get_ip_address_linux_oserror",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "db977c5b2b2809d5aa7aebdf47f117e2",
+      "name": "test_get_pypi_version_prerelease",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "641bc98c2a5fc298e48492417e093882",
+      "name": "test_tracker_sticks_to_track_and_rejects_far_jump",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "4d0715c64e941c618f74b8842875ee0f",
+      "name": "test_semver_pep440_dev",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "5f60d4bad1e134891c8ff4875774efe0",
+      "name": "test_start_from_ref",
+      "status": "passed",
+      "duration": 14
+    },
+    {
+      "id": "72a8fe019da96da8ec68d71f37edf84c",
+      "name": "test_parse_inbound_rejects_malformed",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "07f2707532b76e0857a63effbe2ed008",
+      "name": "test_connect_disables_compression_for_localhost",
+      "status": "passed",
+      "duration": 2
+    },
+    {
+      "id": "0b57fed3cebf2ef2133559681c05bcd6",
+      "name": "test_clear_player_without_send_chain_warns_and_flushes_daemon",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "c2cc517d3e005582586e9280490f722d",
+      "name": "test_make_speaker_eq_default_active",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "b79669c34148e46d063c1eb9d7676ed7",
+      "name": "test_set_startup_app_endpoint_clears_with_null",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "75d4ed6d1c7a4f41db1af5ff91c7bdf0",
+      "name": "test_oauth_status",
+      "status": "passed",
+      "duration": 16
+    },
+    {
+      "id": "b28b7bb0d6ca4cd16a0390ed733ee08c",
+      "name": "test_antenna_touch_wake_does_not_duplicate_startup_callback",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "8ac4d7bc6ac099646d2e068fd93515b7",
+      "name": "test_set_target_composite_dispatch",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "ee39082e18f2768437a589e3e1e7e1a2",
+      "name": "test_simulated_apply_audio_config_round_trip",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "8074ec61870fee45bac8a0412c8b8922",
+      "name": "test_invalid_config_warns",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "403a5ca5e32681e5dce54b8a428f777e",
+      "name": "test_set_output_volume_test_sound_failure_ignored",
+      "status": "passed",
+      "duration": 9
+    },
+    {
+      "id": "6259110a482cabfb8d9262eb447615c8",
+      "name": "test_factory_returns_correct_subclass[alsa]",
+      "status": "skipped",
+      "duration": 0
+    },
+    {
+      "id": "700be0c27453c211be399c39d8d959d5",
+      "name": "test_get_relay_status_reports_connected_instance",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "459d9caad1f923a020044d260a3b2af0",
+      "name": "test_tracker_rejects_specks_on_acquisition",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "440cc3cd4acd4eb4d313fcf1265bcd18",
+      "name": "test_step_head_tracking_eases_toward_target",
+      "status": "passed",
+      "duration": 2
+    },
+    {
+      "id": "6b499563c5909c18a50cc1a6ff046785",
+      "name": "test_tracking_sustained_loss_recenters_to_neutral",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "217aeb1968be8385ad4b8fecd3d651b8",
+      "name": "test_available",
+      "status": "passed",
+      "duration": 13
+    },
+    {
+      "id": "afc90994f9153182659461eb249e16ce",
+      "name": "test_oauth_callback_missing_code",
+      "status": "passed",
+      "duration": 17
+    },
+    {
+      "id": "eafa1a8b2a68e9206e11df3ce69e73be",
+      "name": "test_get_volume",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "6c6398e826e9f4df054fd73cd801b82c",
+      "name": "test_on_new_transceiver_skips_known_video",
+      "status": "passed",
+      "duration": 2
+    },
+    {
+      "id": "6fa93a4b0d7c0d0472d7a06aa0d6f76a",
+      "name": "test_get_present_body_yaw",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "bbfa1d1c30f929ece1c915ad209f1acc",
+      "name": "test_factory_raises_on_unsupported_platform",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "29f0dfc267652a365013f88d25855da1",
+      "name": "test_resolve_gains_defaults",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "7f6b92b5a377c519b2813e082563e343",
+      "name": "test_central_start_session_requests_local_list",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "9554eec35601b197233cb53273b3a6d8",
+      "name": "test_is_loopback_host_false_for_non_loopback_addresses[reachy.local]",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "8a881e2cf86cff0ff70575f50b24790c",
+      "name": "test_send_to_central_posts_with_bearer_token",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "6d2cda292fa8bffff5b50fbdcb616274",
+      "name": "test_to_observation_normalizes_nose_and_roll",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "e9528307308aa2703ab4a32e3fdc0407",
+      "name": "test_is_loopback_host_true_for_loopback_addresses[LOCALHOST]",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "df75733b4db78b84d520e9c3ad85b7c3",
+      "name": "test_daemon_check_skips_inaccessible_proc",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "40d12db19c62ed36f4fc18b6fa8dcee7",
+      "name": "test_connect_keeps_default_compression_for_remote_host",
+      "status": "passed",
+      "duration": 2
+    },
+    {
+      "id": "6c4b5ba9bbedc311014367d3ae5a0eca",
+      "name": "test_stuck_stop_never_double_spawns",
+      "status": "passed",
+      "duration": 2001
+    },
+    {
+      "id": "cea14bdcd9230877df23252495336984",
+      "name": "test_is_localhost_false[192.168.1.10]",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "d852cd76986177f67ad044b16266779e",
+      "name": "test_relay_status_lite_early_return",
+      "status": "passed",
+      "duration": 17
+    },
+    {
+      "id": "7effc051b6fed89be5f8db1c05e518e4",
+      "name": "test_local_welcome_registers_as_listener",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "f47a0ec552032a6d4baacadea3e9acab",
+      "name": "test_subscribe_logs_without_peer",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "95c25a7be6053411472e501b44b17b68",
+      "name": "test_get_pypi_version_prerelease_pep440_info_version",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "8183de6409f63b074a113cb7c70169a2",
+      "name": "test_check_token_status_valid",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "0a89564842afe727e76290bb5147ac00",
+      "name": "test_push_audio_sample[MediaBackend.LOCAL]",
+      "status": "passed",
+      "duration": 8066
+    },
+    {
+      "id": "92bbd8fa531426ccfa747476f82c10f5",
+      "name": "test_unknown_method",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "aa4183b9989af9db6c3978bda2376e50",
+      "name": "test_coerce_space_data_rejects_non_dict",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "c36f58e023842bcaf20163275e9fdb55",
+      "name": "test_antenna_touch_detector_arms_when_idle_pose_is_offset",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "4b2e99a45b55c8b4bb03835b79718042",
+      "name": "test_keep_remote_acquire_does_not_evict",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "9ad794d2d549109249ef28901982db75",
+      "name": "test_build_app_info_none_for_missing_input",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "deb7e54cdca45c2df3b93e9f25bd18f1",
+      "name": "test_connect_disables_compression_for_127_0_0_1",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "055982eaace587260a5a99cb39851d48",
+      "name": "test_is_local_camera_available_linux_true",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "aadc0d38aa79055746faf76dd4906e02",
+      "name": "test_save_hf_token_unexpected_error",
+      "status": "passed",
+      "duration": 2
+    },
+    {
+      "id": "b5c9f1953ca7d36d77fef0bd91fc2eef",
+      "name": "test_daemon_check_already_running_same_config",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "3d7bacec0fd80222d597a08462f210e1",
+      "name": "test_tracking_face_loss_holds_last_target",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "c8325cc1566376116afe9eaf888966ab",
+      "name": "test_start_update_raises",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "f53e2b0c8fbba180b43126ca7027bf5b",
+      "name": "test_build_pypi_version_uv",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "dbce1644dc2cdedaf7ca23b4651b9c73",
+      "name": "test_start_no_update",
+      "status": "passed",
+      "duration": 13
+    },
+    {
+      "id": "d03036d477ff00ca0a64d82f3fab7e40",
+      "name": "test_restart_daemon_unsupported",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "2ed8b1a06c9ce52443d0f4a79d8cf6c6",
+      "name": "test_start_update_accepted",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "bea1a22da9be34be81b8eed0eb888c60",
+      "name": "test_audio_config_board_not_available",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "b7f645b0aed680f16e8def2ede0aa7da",
+      "name": "test_missing_everywhere_returns_none",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "32cd1043a3c41d0a4546b0a1180afbc5",
+      "name": "test_antenna_touch_plays_awake_sound_before_starting_app",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "83a98eab7f011f60eca98801cde6922e",
+      "name": "test_set_speech_offsets_wrong_length_ignored",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "53e27b80b195ebe0a8f1b12d4836a414",
+      "name": "test_audio_upload_happy",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "6e8c408f44d3de7c92fdb295491d7b1d",
+      "name": "test_antenna_watcher_starts_app_on_touch",
+      "status": "passed",
+      "duration": 61
+    },
+    {
+      "id": "28d63d9573ac4e75294bb840a260e4a3",
+      "name": "test_broadcast_reaches_all_clients",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "74805986af294d1d310e305fcf55163f",
+      "name": "test_antenna_watcher_does_not_start_while_app_is_running",
+      "status": "passed",
+      "duration": 52
+    },
+    {
+      "id": "8d9bdf95a7dbeca60cbca9be57f2be3a",
+      "name": "test_set_volume_out_of_range_rejected[150-/volume/microphone/set]",
+      "status": "passed",
+      "duration": 9
+    },
+    {
+      "id": "3dadedb8af148de19d8ab433949c88c3",
+      "name": "test_central_welcome_registers_producer_and_connects",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "4278a65588d8319d9ff0de73f28d8559",
+      "name": "test_playback_path_includes_eq",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "e453b3ae3743a8c5577e1cf415c19da8",
+      "name": "test_set_antennas_updates_target",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "cad1a54e662fbc512a4b630bb9426c9b",
+      "name": "test_apps_install",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "ba75d9c903415b6e050cec523be0718c",
+      "name": "test_build_app_info_defaults_empty_description",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "9116ff841187eb00f44231342acbfadc",
+      "name": "test_apps_start_requires_name",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "ec05c54c81ef011bdf7d030b42959722",
+      "name": "test_create_oauth_session_success",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "405e44c7489837aeab3a66f228470957",
+      "name": "test_apply_resolution_raises_while_playing",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "ae0c9e1b506b28ca214d37fbe4a5346d",
+      "name": "test_audio_chunk_no_slot_dropped",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "f01b47ed80c7d154d658c4cba02644cd",
+      "name": "test_antenna_watcher_wakes_from_baseline_when_target_is_missing",
+      "status": "passed",
+      "duration": 62
+    },
+    {
+      "id": "1207fe6a9442cc7318a11e8b2e5b4988",
+      "name": "test_build_git_ref_uv",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "338dd0d28410e572787164515a75c545",
+      "name": "test_config_round_trip",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "16262b044b8404fada062e9095f45bc4",
+      "name": "test_set_target_updates_head_pose",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "c7c30fc96de9a1fd12bcbe25b1e9df3b",
+      "name": "test_media_server_constructs_in_mujoco_sim",
+      "status": "passed",
+      "duration": 59
+    },
+    {
+      "id": "27bab255ff3af25eef789df8a7a69876",
+      "name": "test_local_peer_translates_session_id_to_central",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "9e056a6237023262d326cc4c330bd935",
+      "name": "test_check_token_status_whoami_error",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "8ef56da7fb9187976fe0faa549a2e0d0",
+      "name": "test_notification_gets_no_response",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "dcd9f6604c6ba40bbca97a721c909406",
+      "name": "test_get_microphone_volume",
+      "status": "passed",
+      "duration": 8
+    },
+    {
+      "id": "92d46234522f1ad7004a6c8c0bdd009c",
+      "name": "test_try_local_acquire_refused_while_remote_held",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "b14b15249ac66fd55878467bc8e23c70",
+      "name": "test_get_local_version_pep440_dev",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "b144591597e7a785b506a672cd85b2b9",
+      "name": "test_get_current_output_volume",
+      "status": "passed",
+      "duration": 11
+    },
+    {
+      "id": "71aae54834efa027aafc0da37cd76776",
+      "name": "test_build_external_venv_uv",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "9d1a22acc208b56a25b094fd0d3fab34",
+      "name": "test_set_head_joints_updates_target",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "7ca00a1af7712d8216302be95599022f",
+      "name": "test_coerce_space_list_keeps_only_dicts",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "67f57235ceb3fc6b032f82f1a36f8e85",
+      "name": "test_doa_simulated",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "ac76b2cf721eca1765977fabbdda7405",
+      "name": "test_get_tracked_face_command_returns_latest_face",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "5700b2547c0fd6cfbf89ef4920396201",
+      "name": "test_delete_hf_token_success",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "69ec966219cf20569d647d0dd3e24ef9",
+      "name": "test_parse_request_notification_vs_call",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "159b3798f2f3024b627a0b3be385203b",
+      "name": "test_antenna_watcher_resets_detector_after_start_failure",
+      "status": "passed",
+      "duration": 41
+    },
+    {
+      "id": "c7eafc20eeaf6480485cc001e2c0dc6a",
+      "name": "test_get_string_returns_string_values",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "38be7e345709495aa5e9fc76f9d1b2e0",
+      "name": "test_delete_sound_returns_false_without_daemon_url",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "60ddf54e03bcec2d2a5ff9d35e63248e",
+      "name": "test_shell_bump_becomes_matching_cut",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "d212c1cad070bf5d20ac04eaf48334fa",
+      "name": "test_upload_sound_missing_file_raises",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "e723a651125e7413d97f0be68c9e6a60",
+      "name": "test_get_oauth_session_status_states",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "0818d66d5d15089ffd11d6133d8e1a49",
+      "name": "test_rearm_cancels_previous_watcher",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "8c0f46244a267b4ce6107cfa33080978",
+      "name": "test_tracking_blend_respects_zero_and_full_weight",
+      "status": "passed",
+      "duration": 2
+    },
+    {
+      "id": "9877fa46acaf6a572ea5ec051de99507",
+      "name": "test_semver_plain",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "ef1215ebe886b451029fe1e66317c08c",
+      "name": "test_set_gravity_compensation_value_error",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "fd352c26089d25495744c714630d3de8",
+      "name": "test_move_chunk_no_slot_dropped",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "2a2e3e74c307aaeacf1b5100b6322c44",
+      "name": "test_make_speaker_eq_skipped_off_reachy_output",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "ee36b82135458cc2768d8b9df89ad46f",
+      "name": "test_set_microphone_volume_failure",
+      "status": "passed",
+      "duration": 8
+    },
+    {
+      "id": "788593a3c400437913d37b438840548c",
+      "name": "test_coerce_space_list_rejects_non_list",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "532db05efccb0f97e55022911fa2eeaa",
+      "name": "test_is_loopback_host_true_for_loopback_addresses[127.0.0.1]",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "c0378d31448b7642ab6670686ba7247c",
+      "name": "test_set_target_ignored_when_move_running",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "a086f0b1475dbb97ac4224cd00657862",
+      "name": "test_move_evict_stale_uploads",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "fb5a29867ac73fbb6bde92691248bc69",
+      "name": "test_linux_device_path_fallback",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "65e40de783fe40f23f44666d306e246e",
+      "name": "test_detect_returns_empty_on_blank_frame",
+      "status": "passed",
+      "duration": 1019
+    },
+    {
+      "id": "9685a6bb2dcdb8ae2b7958c2edaf6456",
+      "name": "test_rmtree_oserror_returns_500[/cache/reset-apps-Applications virtual environment removed-Virtual environment directory already empty]",
+      "status": "passed",
+      "duration": 6
+    },
+    {
+      "id": "d51cb4279d4fbb24be6a7af89e6f6c03",
+      "name": "test_coerce_space_data_stringifies_keys",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "155e54923261bcd15bbae0156e6399dc",
+      "name": "test_set_motor_mode",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "9e5de52815de4d924d4d6945a750f274",
+      "name": "test_set_torque_off_global",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "ab07e6e97de72c6a129b189e1b88b920",
+      "name": "test_antenna_touch_detector_uses_present_baseline",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "c4df3b863ccc794caa051115b398cc4b",
+      "name": "test_update_without_apps_venv",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "c815f678b22f6803e2f63d22419d191b",
+      "name": "test_simulated_read_parameter_round_trip",
+      "status": "passed",
+      "duration": 3
+    },
+    {
+      "id": "62083b6081ea6c761eeef287dfa44d15",
+      "name": "test_set_microphone_volume_ok",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "d8e9c24f3a4f43c195076aefe70e4625",
+      "name": "test_exchange_code_not_configured",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "6c657dfdd71badb2fe8722fb32a209a5",
+      "name": "test_get_input_volume[alsa]",
+      "status": "skipped",
+      "duration": 0
+    },
+    {
+      "id": "ff49d398baafd445d1ba946e014abe77",
+      "name": "test_set_torque_with_ids",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "bb43f3e557b1998481e936bf0e70d070",
+      "name": "test_list_sounds_empty_without_daemon_url",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "0f3b11a765b74a228ad26643e7824d48",
+      "name": "test_try_local_acquire_from_free",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "e5ac6d35398bb4a93310a155d930388c",
+      "name": "test_build_app_info_builds_full_metadata",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "9bdc3a359be661c50770d0ec181b8fc0",
+      "name": "test_commanded_motion_false_for_stable_target",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "78420dcf555398b7f28fcba045c5229a",
+      "name": "test_install_source_git",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "88b0b4780cd83bbf9326d7c9dc10184b",
+      "name": "test_relay_status_wireless",
+      "status": "passed",
+      "duration": 15
+    },
+    {
+      "id": "208b592edd969c5e38052a0098d7cb2e",
+      "name": "test_save_hf_token_hfhub_error",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "a9dd49fbf7669332d9c219ba6f39c818",
+      "name": "test_apps_status_idle",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "4f5803e9810000835f3a15b42e61aff2",
+      "name": "test_matches_opencv_reference",
+      "status": "passed",
+      "duration": 81
+    },
+    {
+      "id": "2f133723d277d5641bfd09a5bacb72c9",
+      "name": "test_remove_other_app_keeps_startup_app",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "aaf01ac2065f84c1a7ce3e70ee1ce559",
+      "name": "test_apply_audio_config_ok",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "c8560529dd26f8d50757591c7edbc656",
+      "name": "test_set_state_notifies_callback_and_swallows_its_errors",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "c0ba692b45ea19c66ff7667ef5d851fc",
+      "name": "test_get_hardware_id",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "36d80143caa999deaf24ec18ef4dc197",
+      "name": "test_stop_recording",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "f0ece2ad0fada93e8bff349e41e78795",
+      "name": "test_set_volume_ok",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "91d249225fb4b36684e6da201fcb0678",
+      "name": "test_get_oauth_redirect_uri_variants",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "3284ec970a98f92116540cf969b152cd",
+      "name": "test_close_connections_closes_and_clears",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "3a4a09b05b8484394b880814c120ec75",
+      "name": "test_move_finish_unknown_encoding_stores_nothing",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "e4440cbce9edd05f4461632cf75ef1c5",
+      "name": "test_set_startup_app_endpoint_persists_and_rearms",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "67b45159573fe35510872cae6ce89ee5",
+      "name": "test_on_deep_element_added_ignores_other_elements",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "c7b24ec7fcdd5a155b405dc6e009f921",
+      "name": "test_start_central_relay_returns_existing_instance",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "62ba19068443bc3d64f2163939940638",
+      "name": "test_validate_ref_github_down",
+      "status": "passed",
+      "duration": 12
+    },
+    {
+      "id": "5af98edd3edf651fddd2e412e6452457",
+      "name": "test_is_loopback_host_true_for_loopback_addresses[ 127.0.0.1 ]",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "b019d623b5e681f37bc3808035439427",
+      "name": "test_async_goto_ok",
+      "status": "passed",
+      "duration": 2
+    },
+    {
+      "id": "a35f017c8fa1270c9b467c2d7e82a716",
+      "name": "test_normalize_space_data_keeps_existing_camel_case",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "1ff8e9b0085b1c13370303d2cbb2a095",
+      "name": "test_set_wobbling_disabled",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "51ee5db1c6b728dbfe3590b930f492b8",
+      "name": "test_push_audio_sample_without_start_playing[MediaBackend.LOCAL]",
+      "status": "passed",
+      "duration": 3046
+    },
+    {
+      "id": "dc35b6b5cd639a26e718ed67eadbc42e",
+      "name": "test_set_output_volume_plays_test_sound",
+      "status": "passed",
+      "duration": 9
+    },
+    {
+      "id": "ddd9b314506878b6206de1bdffcdee8c",
+      "name": "test_validate_ref_valid",
+      "status": "passed",
+      "duration": 14
+    },
+    {
+      "id": "ceae5db7bf27fcfce9060f9519672108",
+      "name": "test_is_localhost_true[0.0.0.0]",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "f210b4013f04d243fc4813ee1f8f3a51",
+      "name": "test_semver_invalid_raises",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "6c647126fd7e5253c3e1e26a6b65dee0",
+      "name": "test_install_source_pypi_no_direct_url",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "d590e5cc076fa4f49b311927a7046ba8",
+      "name": "test_playback_path_skips_eq_when_zero",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "fec20d7bd7b8a6815d5139a4bf083b9b",
+      "name": "test_stop_playing_resets_pts_and_stops_daemon_sound",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "de68a78bf0040b092fbe6f1fd3be9516",
+      "name": "test_set_target_head_pose_sets_ik_required",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "4ed1eebfc77289dd6de008c50c64a213",
+      "name": "test_rearm_unknown_app_arms_nothing",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "a50680ca5ec29f1f588c873beadde707",
+      "name": "test_wake_up_completes",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "510c9ad3cf5b46b0ba61bd207777f94a",
+      "name": "test_cleanup_expired_sessions",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "94e7042a47bc316d3f5c30bb237fa038",
+      "name": "test_local_session_started_maps_ids",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "f6f8748551889d1cba148ab3b9a478ef",
+      "name": "test_commanded_motion_detects_moving_target",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "cfcf8bf116341031ed245a0aeb8bf6b7",
+      "name": "test_face_tracker_resets_filter_after_target_loss",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "ee560adb326b9e03775e040ed1bb9c55",
+      "name": "test_config_gains_validation",
+      "status": "passed",
+      "duration": 2
+    },
+    {
+      "id": "3110a672bbe70656d239c0378f56f9c7",
+      "name": "test_expired_session_not_returned",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "6a9586833dc7a29ba878db68888a0893",
+      "name": "test_start",
+      "status": "passed",
+      "duration": 13
+    },
+    {
+      "id": "c18101665dc01a513a5797a9e3cf5042",
+      "name": "test_test_sound_error",
+      "status": "passed",
+      "duration": 25
+    },
+    {
+      "id": "c64b5fd4c04d81779e3a1ffe1abd9797",
+      "name": "test_find_producer_peer_id_by_name",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "0734c8ef4964a510311f28471e3e35b0",
+      "name": "test_iterate_gst_yields_ok_and_resyncs",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "3a1ec1c85845612acd477d1ac15f8903",
+      "name": "test_play_uploaded_audio_no_such_audio",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "1a5cf607b08b7da76ff3a3aec446a0a0",
+      "name": "test_is_localhost_false[example.com]",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "b633ce293421e0b2dc99ce6363cc69f8",
+      "name": "test_close_connections_reentrant_guard_short_circuits",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "2c35d9722d731167ba6faf33ccacec35",
+      "name": "test_is_loopback_host_true_for_loopback_addresses[localhost]",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "cf0f7941d931f0c5d32d373111257d59",
+      "name": "test_notify_token_change_noop_without_instance",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "f2c87c93c91ebdd98c6c8958a2756e32",
+      "name": "test_generate_user_code_format",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "150e8b2a490354a1804c62a8ca2cd093",
+      "name": "test_config_clear",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "f3e6bbe1080543053314b016271d7c8c",
+      "name": "test_find_producer_peer_id_by_name_missing_raises",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "2d1aeda3bbf9be92b6fa561925f091c8",
+      "name": "test_make_speaker_eq_noop_when_all_zero",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "245d7b4874863016475dd2eef888175a",
+      "name": "test_list_sounds_returns_files",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "aac3954f02daf4e692f08cadbe5e8741",
+      "name": "test_send_to_local_sends_json_over_ws",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "08ffc351895325e6d9508cfa7f8e3150",
+      "name": "test_config_corrupt_file_reads_as_none",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "62b6dde97c94388e92f2a3eaa54c3d28",
+      "name": "test_is_loopback_host_false_for_non_loopback_addresses[0.0.0.0]",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "608a0eddfed1a65947b004155080ddb0",
+      "name": "test_parse_inbound_classifies_each_frame",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "d0a66e3653eedfc01becce8de792dda7",
+      "name": "test_validate_ref_empty",
+      "status": "passed",
+      "duration": 14
+    },
+    {
+      "id": "e1086fd16a42183f4b266a9d9ede7cce",
+      "name": "test_client_receives_video_and_audio_over_webrtc",
+      "status": "passed",
+      "duration": 1394
+    },
+    {
+      "id": "cd81b065ab309431c0debb6d172b8c3d",
+      "name": "test_audio_config_init_raises",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "5b1e52f563cfc6f6505acaca8cf2a065",
+      "name": "test_move_upload_gzip_base64_happy",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "621f6d19a6ad03626bc7753fdc9018db",
+      "name": "test_get_ip_address_unsupported_platform",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "7ca47edc7372ac9aca9ebb7e35cfeb39",
+      "name": "test_upload_sound_returns_daemon_path",
+      "status": "passed",
+      "duration": 2
+    },
+    {
+      "id": "81354327be32ffe5aa6d8cddc1e9a796",
+      "name": "test_read_audio_parameter_ok",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "2eb8a022f45a5bdf8e84a5fbccd858ed",
+      "name": "test_set_and_restore_input_volume[alsa]",
+      "status": "skipped",
+      "duration": 0
+    },
+    {
+      "id": "82d5a400b84fa66ea7256c528b3632a3",
+      "name": "test_normalize_space_data_renames_snake_case_keys",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "72eb0aca1e94ea898939fe0947bff4d7",
+      "name": "test_stop_leaves_robot_asleep_when_in_sleep_pose",
+      "status": "passed",
+      "duration": 2
+    },
+    {
+      "id": "91656035ec57637c2db13ad4558d6959",
+      "name": "test_stop_central_relay_stops_and_clears",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "ffa2f20f254175e2b4221f48327621f8",
+      "name": "test_antenna_touch_wakes_sleeping_robot_before_starting_app",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "52dc053d35fc4ee85bb1e7472cae7bb9",
+      "name": "test_zero_above_and_max_boost",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "3cd23e5cf40bb72c9f6b72f4c8984030",
+      "name": "test_send_to_central_non_200_does_not_raise",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "2fdf8bf785d2281ad06d01a8ee79b72d",
+      "name": "test_move_chunk_index_exceeds_total_drops_slot",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "8042df7ad4479c82d7f96a8ebe2738f5",
+      "name": "test_append_record_noop_when_stopped",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "d7e88e2bc010e05c6805de0f5ccaa3d5",
+      "name": "test_tracker_acquires_largest_above_min_size",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "049158a1c01044d18e176e2e43647371",
+      "name": "test_set_target_body_yaw_sets_ik_required",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "0aca8709b7c4b595f8e75a32c6f0093d",
+      "name": "test_set_wobbling_enabled",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "bb383855a46327e70b1ed414eb3c8afc",
+      "name": "test_start_from_ref_empty",
+      "status": "passed",
+      "duration": 13
+    },
+    {
+      "id": "a19967d3c8f3e27d9f265aafca1087f3",
+      "name": "test_is_loopback_host_false_for_non_loopback_addresses[192.168.1.42]",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "ccfc84bdbd89c74b9a166dba7605df03",
+      "name": "test_get_relay_returns_the_singleton",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "b6e15d18bebc4b5f5c8b95c3064c22fc",
+      "name": "test_notify_token_change_forwards_to_instance",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "9d671f102944ca1a263a629df930471c",
+      "name": "test_antenna_touch_start_skips_when_remote_session_is_active",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "60a807837d72ec31493b5210f1ce8aeb",
+      "name": "test_build_app_info_none_without_id",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "bc3c231bc6eecb809219be9ff18d423c",
+      "name": "test_get_pypi_version_stable",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "68a331b04367a6292ad7c1a1f88fd79c",
+      "name": "test_get_card_data_returns_dict",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "55c98f6ed213d33136e8c7edb0fd6436",
+      "name": "test_face_tracker_filters_emitted_detection_sequence",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "3daf0b7c609895ab5cff52a670e37af6",
+      "name": "test_stop_head_tracking_sends_disable_command",
+      "status": "passed",
+      "duration": 2
+    },
+    {
+      "id": "175dd6f2788dd15ea74d413d76f60d12",
+      "name": "test_set_volume_out_of_range_rejected[150-/volume/set]",
+      "status": "passed",
+      "duration": 8
+    },
+    {
+      "id": "8687e381a7c8fc0272480d3948f40e82",
+      "name": "test_set_output_volume_clamps[alsa]",
+      "status": "skipped",
+      "duration": 0
+    },
+    {
+      "id": "ea625fc40f04dc4a18b454f24c4e003a",
+      "name": "test_set_full_target_partial_fields",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "fe2e3e9695ac387b12c3477acbf863b1",
+      "name": "test_info_not_found",
+      "status": "passed",
+      "duration": 12
+    },
+    {
+      "id": "076b9f63b66a2ee80bba1d44e65a7a45",
+      "name": "test_path_missing_no_rmtree[/cache/reset-apps-Applications virtual environment removed-Virtual environment directory already empty]",
+      "status": "passed",
+      "duration": 6
+    },
+    {
+      "id": "7ef5bac3c6f426ecefa1c3d5b750bf6c",
+      "name": "test_status",
+      "status": "passed",
+      "duration": 16
+    },
+    {
+      "id": "24fc532b45ad348ceebb2bff64da76dc",
+      "name": "test_play_uploaded_audio_happy",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "020a8e05dd0ec055a333a266f5be401f",
+      "name": "test_startsession_control_only_while_local_app_runs",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "c0625dbeaba3656e7c5e141f2b8b0314",
+      "name": "test_check_token_status_no_token",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "1b5e88fa86f3d357bc4ad2fa255f4ae5",
+      "name": "test_save_token_failure",
+      "status": "passed",
+      "duration": 17
+    },
+    {
+      "id": "21cae2bb192e90fecde374065cd3a87c",
+      "name": "test_get_microphone_volume_failure",
+      "status": "passed",
+      "duration": 8
+    },
+    {
+      "id": "93584ed1a7e19aa03b5f8fdf811bb559",
+      "name": "test_get_current_head_pose",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "c763be62eb66159884c2bb7db1e93c54",
+      "name": "test_set_output_volume_success",
+      "status": "passed",
+      "duration": 8
+    },
+    {
+      "id": "78cba531ece2e0b040c8b0fc4b7375b8",
+      "name": "test_configure_webrtcsrc_raises_without_plugin",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "8a7ffa6bd4081c690630074934b83ef3",
+      "name": "test_is_local_camera_available_linux_false",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "1f72aaf97ec1da5fc85d87649033015e",
+      "name": "test_is_loopback_host_true_for_loopback_addresses[::1]",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "03734bd333791a57494d3071ee2b7ef4",
+      "name": "test_get_producer_list_parses_producers",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "fe672ff4ca7b06a0c944e1ebb91acfa9",
+      "name": "test_send_to_central_skips_without_session_or_token",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "77fcbe74d7b4c2d4af49aec81a6ce3bb",
+      "name": "test_stop_recording_publishes",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "ccbe92b7b35ba6d2b6351a7fbcd44d4c",
+      "name": "test_local_list_starts_pending_sessions",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "372ae58b195b139e2bae8921b2e888a1",
+      "name": "test_configure_webrtcsrc_sets_signaller_properties",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "e481ec55577faf6568a8b0fa927be56f",
+      "name": "test_enable_head_tracking_weight_zero_pauses_without_stopping",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "f32bc20ceaac7ff3d38e2ee48be6852c",
+      "name": "test_test_sound_device_busy[error -9985 occurred]",
+      "status": "passed",
+      "duration": 10
+    },
+    {
+      "id": "ad516d7b18a7f759709381520bde45a6",
+      "name": "test_audio_evict_stale_slots_and_orphan_file",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "5b48e5a7a4581283b176a49a8b5a11eb",
+      "name": "test_get_oauth_session_and_by_state",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "bc94a715cdeeb8984a18dede88f34055",
+      "name": "test_configure_oauth_sets_globals",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "2e17376930da9467a1501db88442bc98",
+      "name": "test_semver_rc",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "bc2b0a9d0cdd86211bcea8a85955ce9c",
+      "name": "test_get_frame_exists_all_resolutions",
+      "status": "passed",
+      "duration": 1072
+    },
+    {
+      "id": "6b8aa550fa231ceb6533403dd095f522",
+      "name": "test_set_volume_out_of_range_rejected[-5-/volume/set]",
+      "status": "passed",
+      "duration": 10
+    },
+    {
+      "id": "37187e3129313728c5d7da73f47643de",
+      "name": "test_install_source",
+      "status": "passed",
+      "duration": 13
+    },
+    {
+      "id": "056509aadfe83565a074f8c75aa84144",
+      "name": "test_play_sound_reaches_sink",
+      "status": "passed",
+      "duration": 5081
+    },
+    {
+      "id": "f5c95b8755af9ed1b0566d0ee4a161ea",
+      "name": "test_rearm_with_none_cancels_and_neutralizes_wake_hook",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "e47ea52acb3285eaf60d972e0201181c",
+      "name": "test_set_gravity_compensation_enabled",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "0cc34ae4099f5b2eea7feb886e9a20c9",
+      "name": "test_find_serial_port_not_found",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "510be15214d9e7c6f6c683b2f945a57b",
+      "name": "test_update_target_head_joints_from_ik_unreachable_raises",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "6bf3961c27bb7e0433414c547eab518f",
+      "name": "test_stop_play_sound[MediaBackend.LOCAL]",
+      "status": "passed",
+      "duration": 4480
+    },
+    {
+      "id": "6cf0c50dc8f7b61a53297efc846551c7",
+      "name": "test_daemon_check_different_config_kills_and_respawns",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "55fd132ac291e2ff721ebde3da29f748",
+      "name": "test_relay_forwards_and_restores_id",
+      "status": "passed",
+      "duration": 101
+    },
+    {
+      "id": "d49aa5688b0e799bafd380a25924d4f9",
+      "name": "test_get_producer_list_unknown_type_returns_empty",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "88c90b2000d820e64a4730e067f4f01c",
+      "name": "test_is_loopback_host_true_for_loopback_addresses[Localhost]",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "7967a4d035325265d5a4a482e9e483a8",
+      "name": "test_editable_install_resolves_via_app_python",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "bf79e07e35ea1fd43b295893e5900387",
+      "name": "test_update_target_head_joints_from_ik_with_speech_offsets",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "17b79a86f189e0720a42162dd8cbb4d0",
+      "name": "test_get_input_volume[pulsectl]",
+      "status": "skipped",
+      "duration": 0
+    },
+    {
+      "id": "67605a42b677bcedc031ceba0a39540a",
+      "name": "test_set_target_head_joint_positions_clears_ik",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "2293569baf06146658507772c841e239",
+      "name": "test_get_state",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "8c14ffeff29dc9977ef74765f38ab086",
+      "name": "test_is_localhost_true[::1]",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "f752a1520e6e93d55f2774ef73417a75",
+      "name": "test_set_torque_on_global",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "33c9a5eb7e433e8124c73a091b1f4619",
+      "name": "test_save_token_success",
+      "status": "passed",
+      "duration": 17
+    },
+    {
+      "id": "c07843c03c42463ca2b8fc687235b462",
+      "name": "test_is_oauth_configured_toggle",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "3e31fc2613d03170df442ae40cfa8b7d",
+      "name": "test_save_hf_token_invalid",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "fb54c7626e3b1d2473d1049f43f0b496",
+      "name": "test_set_body_yaw_updates_target",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "7200cf3a425305b5ac9f29aa92fc7368",
+      "name": "test_to_observation_no_face_reports_undetected",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "41b7357dcefae8235e18529b5a6da7be",
+      "name": "test_awake_startup_cue_only_plays_sound",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "86c4e99352cf26ea02eff1da20794752",
+      "name": "test_set_output_volume_failure",
+      "status": "passed",
+      "duration": 8
+    },
+    {
+      "id": "8149dc9a5c80b07b5fdbfe42ad6aae5d",
+      "name": "test_cancel_audio_non_matching_noop",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "7ffd056d85e638748da1cf23602931ef",
+      "name": "test_rearm_arms_watcher_and_wake_hook_for_installed_app",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "98f19589717216c0d6d4f64d7455a3b5",
+      "name": "test_get_hf_token",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "f7eb572d79d6fcfadc7f859606eb22a6",
+      "name": "test_async_goto_sleep_error",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "77a77b1a8c5d35179466fb85ff7ed876",
+      "name": "test_audio_chunk_index_exceeds_total_drops_slot",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "f77b686a0d0b15012b47e44f381fcf8f",
+      "name": "test_set_volume_failure_returns_current",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "7de97cccad04742ea071ce8564494800",
+      "name": "test_async_play_uploaded_move_no_such_move",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "88b90de13843c7c452979535fe67b5db",
+      "name": "test_async_wake_up_error",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "480b444cb15c5a02e00129494596428d",
+      "name": "test_is_localhost_false[]",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "a997fa135643602cc27a733fe052180e",
+      "name": "test_move_finish_count_mismatch_stores_nothing",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "d17604ae242f9cf36955fa78d284e0a6",
+      "name": "test_append_record_while_recording",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "4c58b4e4be1f14cd1686c6ca9ec2c430",
+      "name": "test_start_recording",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "0bf246c51b6f633fdbd1c63a1a186626",
+      "name": "test_semver_unparseable_three_parts_raises",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "691397ad816daede9ea8d90c1b05d983",
+      "name": "test_change_resolution_errors[MediaBackend.LOCAL]",
+      "status": "passed",
+      "duration": 2046
+    },
+    {
+      "id": "8363411f5227fa7fb0d0148553cf2a66",
+      "name": "test_set_gravity_compensation_disabled",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "c836f28e46b2f53bc45dd5a704969f90",
+      "name": "test_start_from_ref_busy",
+      "status": "passed",
+      "duration": 13
+    },
+    {
+      "id": "8fbbf69c4d57ac3c034771c1fd6fb539",
+      "name": "test_original_id_recorded_before_send",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "46efefb2e3242cfd416a4421e9e07426",
+      "name": "test_play_uploaded_audio_play_sound_raises",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "12addd1b50776ac769267cc288f667ee",
+      "name": "test_cancel_move_non_matching_noop",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "e6cc4e5532de44735d0070340759e85c",
+      "name": "test_path_exists_rmtree_called[/cache/clear-hf-HuggingFace cache cleared-Cache directory already empty]",
+      "status": "passed",
+      "duration": 8
+    },
+    {
+      "id": "ce7035c95102cc5d66b7d17f007b1cd3",
+      "name": "test_set_target_antenna_joint_positions",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "47d70c93b2b4c1426797f629f4013df2",
+      "name": "test_start_busy",
+      "status": "passed",
+      "duration": 12
+    },
+    {
+      "id": "5d5dfb735741d6d6397fbbc0b76a474e",
+      "name": "test_available_busy",
+      "status": "passed",
+      "duration": 13
+    },
+    {
+      "id": "2c5cd9ba79b39413c81e0c4d46546468",
+      "name": "test_stop_returns_to_zero_when_awake",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "1f1cc3e58cd5f763317c185f172c294f",
+      "name": "test_remove_app_clears_startup_app",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "3a9f7b272ce55d5b4755cbc4390e395e",
+      "name": "test_find_serial_port_found",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "f6d4a2440cdcbbed935316fb1518fc18",
+      "name": "test_is_loopback_host_false_for_non_loopback_addresses[]",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "9a0f289ae0e0ddc9f547ca001abcabf5",
+      "name": "test_volume_control_unavailable",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "b39cca37adda715d5f21a78c6ee84f52",
+      "name": "test_dispatch_async_handler_and_params",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "2bbd3ffb9df00164df6504a5f1402029",
+      "name": "test_is_localhost_true[localhost]",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "6a064e28fb9a936a53ef42cae27115bb",
+      "name": "test_publisher_setters_store_object",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "8c9a1a8de92eda90708180b373fb2824",
+      "name": "test_set_head_tracking_enabled_unavailable",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "328c44a83a056b78a5a622d191f97a35",
+      "name": "test_play_sound_delegates",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "7361fc54a1adf4d747d53ef4f696d9da",
+      "name": "test_async_goto_error",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "b013f8e68a9ce8ef2d6ad51a640f334a",
+      "name": "test_set_head_tracking_command_toggles_tracking",
+      "status": "passed",
+      "duration": 2
+    },
+    {
+      "id": "3c7f19b8b19f578daec7ca9953cb4c01",
+      "name": "test_unsubscribe_logs_without_peer",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "a253cab8f25d31e995e5e4fc583f2ce5",
+      "name": "test_startsession_refused_when_another_remote_holds",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "ad257472eb8fec0bb79166a4f011e9ad",
+      "name": "test_get_card_data_defaults_to_empty_dict",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "72f78511de787e88516e03912860a98e",
+      "name": "test_delete_token_failure",
+      "status": "passed",
+      "duration": 15
+    },
+    {
+      "id": "ab8b5f8e0288e2d4ece5d8911d4a53fc",
+      "name": "test_delete_token_success",
+      "status": "passed",
+      "duration": 15
+    },
+    {
+      "id": "d824cef682e2690e018afd1440b99155",
+      "name": "test_on_new_transceiver_sendrecv_when_no_caps",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "1579494c7b7ef8aaf214ad575a21095a",
+      "name": "test_oauth_session_delete_not_found",
+      "status": "passed",
+      "duration": 16
+    },
+    {
+      "id": "6ebf84878dccf0e44360a657b300ee80",
+      "name": "test_central_start_session_rejected_when_busy",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "61d09e6db88ad855eb0d13bb0529bd36",
+      "name": "test_set_and_restore_output_volume[pulsectl]",
+      "status": "skipped",
+      "duration": 0
+    },
+    {
+      "id": "69e4f285a9c505a5a9797f0dab5e87ff",
+      "name": "test_send_to_local_no_ws_is_noop",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "1398001c5848769fc566be2e01f165bc",
+      "name": "test_clear_incoming_audio_delegates",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "5defcd4751ac3fae151068b216a29663",
+      "name": "test_start_head_tracking_sends_enable_command",
+      "status": "passed",
+      "duration": 3
+    },
+    {
+      "id": "75f6714aff2b3a9e4f259d4964fb15ae",
+      "name": "test_set_volume_out_of_range_rejected[-5-/volume/microphone/set]",
+      "status": "passed",
+      "duration": 8
+    },
+    {
+      "id": "608dad3573a73a43f95d522c05388db3",
+      "name": "test_on_bus_message_latency_recalculates",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "d42d349e8b8eb9095f318a1b6d4b38a2",
+      "name": "test_rmtree_oserror_returns_500[/cache/clear-hf-HuggingFace cache cleared-Cache directory already empty]",
+      "status": "passed",
+      "duration": 6
+    },
+    {
+      "id": "d3214e965df3c459fdfd1617a5a396f0",
+      "name": "test_get_pypi_version_http_error",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "f05f4248d23b9b98fb76a997c456c2ca",
+      "name": "test_set_head_tracking_disabled",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "6384fc4d38b495252209e67818db7b1b",
+      "name": "test_handler_raises_jsonrpc_error",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "9e6e0a519e9c39cdfb7c9d9c28919e00",
+      "name": "test_is_localhost_none",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "61bd8639ab484dab579f49fa30a2e916",
+      "name": "test_set_output_volume_clamps[pulsectl]",
+      "status": "skipped",
+      "duration": 0
+    },
+    {
+      "id": "79fb359894d23f9901194ad87f16a959",
+      "name": "test_play_sound_posts_to_daemon",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "e50577be1ee084e4f930cc0836d7d2b6",
+      "name": "test_daemon_check_no_spawn",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "45cb468fd528c811410838841ead9a7f",
+      "name": "test_commanded_motion_false_when_sample_missing",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "3d0fae67255c920b902a138a50a7849b",
+      "name": "test_record_audio_without_start_recording[MediaBackend.LOCAL]",
+      "status": "passed",
+      "duration": 2048
+    },
+    {
+      "id": "f1a47348bb97056153b573d0fc2b0000",
+      "name": "test_is_loopback_host_true_for_loopback_addresses[127.0.0.2]",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "ed19d27c178b86e381f2f1932e3d1282",
+      "name": "test_delete_hf_token_failure",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "c1392f8941e4263e919bf4e25d000cb9",
+      "name": "test_is_localhost_false[128.0.0.1]",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "e271bef8840886f475b0de97fa6703e5",
+      "name": "test_is_localhost_true[127.0.0.53]",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "6b3f4d1566a6fc58e87c446d33c6eef3",
+      "name": "test_record_audio_and_file_exists[MediaBackend.LOCAL]",
+      "status": "passed",
+      "duration": 6156
+    },
+    {
+      "id": "0356dcd00ab44b0dc3d29413fc0149c9",
+      "name": "test_central_peer_dropped_when_no_mapping",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "838267da5e7dd37efaed9b94bee3fec0",
+      "name": "test_test_sound_device_busy[Device unavailable]",
+      "status": "passed",
+      "duration": 10
+    },
+    {
+      "id": "7425944364f8431b433df74e4c98786e",
+      "name": "test_tracker_drops_track_after_misses_then_reacquires",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "6ce492f832eb155b777a5b19b3a1dfdc",
+      "name": "test_send_to_local_swallows_send_errors",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "58c0dfac3989e3c9805b8d7cd9128a93",
+      "name": "test_start_update_refused",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "9309de46083bfe72e8de02251170cac4",
+      "name": "test_on_bus_message_ignores_appsrc_not_negotiated",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "c8db24ce26be308a0e2841875502e146",
+      "name": "test_oauth_configured",
+      "status": "passed",
+      "duration": 16
+    },
+    {
+      "id": "92da2a55ee6f64147ca15adbdada2549",
+      "name": "test_install_source_file_not_found",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "6e11edd9f23a91dfef4124f7ae8c81b1",
+      "name": "test_get_output_volume[alsa]",
+      "status": "skipped",
+      "duration": 0
+    },
+    {
+      "id": "b2367013b2714d841b1f354bbd8bb6f9",
+      "name": "test_full_weight_tracking_ignores_unrelated_app_head_updates",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "41ac6211e79c6ccc071dcb5b9a918a95",
+      "name": "test_is_loopback_host_false_for_non_loopback_addresses[[not-an-ip]]",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "15c633e7534d4821a78e9ef578eac901",
+      "name": "test_create_oauth_session_not_configured",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "2128cdb878ab60c410ddedb8c16bc223",
+      "name": "test_set_target_body_yaw_noop_when_unchanged",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "4c6bedc01081c4e64a5bfd4c76cb08fb",
+      "name": "test_builders_emit_the_expected_wire_shape",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "c47b0cf6229c067617441df16d24dfca",
+      "name": "test_path_missing_no_rmtree[/cache/clear-hf-HuggingFace cache cleared-Cache directory already empty]",
+      "status": "passed",
+      "duration": 7
+    },
+    {
+      "id": "19171938fb76a545d8a9bc256c22967b",
+      "name": "test_is_loopback_host_false_for_non_loopback_addresses[example.com]",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "872dceff38d6250ae7009b741a3b7237",
+      "name": "test_set_target_head_pose_full_tracking_weight_skips_ik",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "1c72a2d9d688da716ab607d8abf75e7d",
+      "name": "test_antenna_touch_start_uses_non_evicting_app_start",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "57a39a2e5cc254083c8ccce9cc767357",
+      "name": "test_set_microphone_volume_success",
+      "status": "passed",
+      "duration": 8
+    },
+    {
+      "id": "065cc99249e5d31e14687bd3d361e114",
+      "name": "test_read_jpeg_encodes_bgr_frame",
+      "status": "failed",
+      "duration": 30
+    },
+    {
+      "id": "2071431c0ea4c1a4b422eddcce7ede7d",
+      "name": "test_is_update_available_false",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "c6fb8ffa959f032776f07d9ca13200a0",
+      "name": "test_build_external_venv_pip_fallback",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "65eea9f39ae5e4ddbbbbf59f3cf3f774",
+      "name": "test_get_motor_mode",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "6c7913ea206553fa12a9ba1177b55323",
+      "name": "test_set_startup_app_endpoint_rejects_uninstalled",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "46647991fddcdf533d5a8e35bd3cb901",
+      "name": "test_oauth_callback_error_param",
+      "status": "passed",
+      "duration": 18
+    },
+    {
+      "id": "c0aeb4d4d06abb0f59187d86415fcc2e",
+      "name": "test_save_hf_token_success",
+      "status": "passed",
+      "duration": 2
+    },
+    {
+      "id": "79dc876dbe1beaa3c0f84e9af9759495",
+      "name": "test_available_connection_error",
+      "status": "passed",
+      "duration": 12
+    },
+    {
+      "id": "f2cffd217594887894449c318adb7eb8",
+      "name": "test_is_localhost_true[127.0.0.1]",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "60009087b934121fb45b48096dc3279a",
+      "name": "test_oauth_start_error",
+      "status": "passed",
+      "duration": 16
+    },
+    {
+      "id": "86549a9efaf51325748df87a1182954a",
+      "name": "test_get_tracked_face",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "808bafe2a8f45000b5dc3d1475ded2fe",
+      "name": "test_get_frame_exists",
+      "status": "passed",
+      "duration": 1070
+    },
+    {
+      "id": "5a1af231f683f989f42d3851dcac64ac",
+      "name": "test_set_speech_offsets_six_values",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "7339da75958d15dc7c7fdb568fb6bb8e",
+      "name": "test_local_end_session_forwards_to_central_and_releases_lock",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "65c907b85926c12400606aabf2acb82a",
+      "name": "test_central_robot_status_no_token",
+      "status": "passed",
+      "duration": 17
+    },
+    {
+      "id": "cd782be076f4d250fa0dccac92afd86b",
+      "name": "test_get_output_volume[pulsectl]",
+      "status": "skipped",
+      "duration": 0
+    },
+    {
+      "id": "1069df65f3221312d2a88af0ce6db28b",
+      "name": "test_set_and_restore_input_volume[pulsectl]",
+      "status": "skipped",
+      "duration": 0
+    },
+    {
+      "id": "6746a345ddd449a79a83914f5315a41f",
+      "name": "test_is_local_camera_available",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "1346e17f0385e31cee70eddb3f101a48",
+      "name": "test_get_version",
+      "status": "passed",
+      "duration": 2
+    },
+    {
+      "id": "2da9cec0b9ea1833098180676cb8631d",
+      "name": "test_is_localhost_false[10.0.0.1]",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "d969fefa50c6f01c4c76046bfab24a4e",
+      "name": "test_build_verbose_flag",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "32c9dd581f4eca05bca88c34169b1e3d",
+      "name": "test_is_update_available_true",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "b877d7147b456203a5a1b5b1ae592a1e",
+      "name": "test_generate_pkce_pair_distinct_urlsafe",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "78618a2c8dce290996a0300ade3d767d",
+      "name": "test_set_automatic_body_yaw",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "db93875964b6cf4a97e2c5c8fca65525",
+      "name": "test_restart_daemon_ok",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "ed1edfc84af64bf2eb51d092dcb40725",
+      "name": "test_cancel_audio_matching",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "0a158a0857ac7adee9047fd8a2f35c51",
+      "name": "test_get_microphone_volume",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "58eec53cc74f0a552eb3aea6dd1aebde",
+      "name": "test_find_serial_port_wireless_found",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "395f35d1c6386451a13cf058f669d4d0",
+      "name": "test_looks_like_jsonrpc",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "17ee9b79f7627e5102357c9271216ff7",
+      "name": "test_central_end_session_cleans_up_and_releases_lock",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "035a18ff107d1ea50577a615de518086",
+      "name": "test_set_full_target_all_fields",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "09392f077689e16f65a15a0910b2984f",
+      "name": "test_cancel_move_matching",
+      "status": "passed",
+      "duration": 0
+    },
+    {
+      "id": "542483ee7c7b83e564d228ef4c700774",
+      "name": "test_relay_no_app_running",
+      "status": "passed",
+      "duration": 1
+    },
+    {
+      "id": "a37f9f506dcb5a6305d852121b579548",
+      "name": "test_dispatch_result",
       "status": "passed",
       "duration": 0
     }
@@ -60,17 +2671,17 @@
   "retryTests": [],
   "checks": [],
   "name": "Reachy Mini Tests",
-  "duration": 36108,
-  "createdAt": 1782827083387,
+  "duration": 78541,
+  "createdAt": 1784582029513,
   "plugin": "Awesome",
   "meta": {
-    "reportId": "65ab9fbf-7f01-4709-8af3-8058841b8d8e",
+    "reportId": "8ed79b19-3e7f-4eb2-83e7-c6264fa2081f",
     "singleFile": false,
     "withTestResultsLinks": true
   },
   "pluginId": "awesome",
   "pullRequestHref": "",
-  "jobHref": "https://github.com/pollen-robotics/reachy_mini/actions/runs/28448965046",
+  "jobHref": "https://github.com/olaservo/reachy_mini/actions/runs/29779154005",
   "href": "awesome/",
-  "coverage": 32
+  "coverage": 51
 }
