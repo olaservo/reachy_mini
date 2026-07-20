@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "reachy_mini"
-version = "1.10.0.dev0"
+version = "1.10.0rc2"
 authors = [{ name = "Pollen Robotics", email = "contact@pollen-robotics.com" }]
 description = ""
 readme = "README.md"
@@ -138,8 +138,11 @@ lint.ignore = [
 testpaths = ["tests/unit_tests"]
 markers = [
     "audio: mark test as requiring audio hardware",
+    "respeaker: mark test as requiring the physical ReSpeaker/XMOS audio board",
+    "loopback: mark test as requiring a virtual audio loopback (verifies real audio flow)",
     "video: mark test as requiring video hardware",
     "wireless: mark test as requiring wireless Reachy Mini",
+    "webrtc: mark test as requiring the gst-plugins-rs webrtc plugin (libgstrswebrtc.so)",
     "ipc_resolution: override the resolution used by the ipc_video_source fixture",
 ]
 

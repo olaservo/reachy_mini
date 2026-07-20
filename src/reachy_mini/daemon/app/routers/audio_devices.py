@@ -6,7 +6,7 @@ chosen PipeWire node — so it reaches USB cards and Bluetooth speakers alike. W
 no selection, playback falls back to the stock ``~/.asoundrc`` path (``alsasink``
 on the built-in XMOS card), which keeps that chip's hardware echo cancellation.
 
-Selections are persisted (see :mod:`reachy_mini.daemon.daemon_config`) so an
+Selections are persisted (see :mod:`reachy_mini.daemon.startup_app_config`) so an
 external speaker chosen once survives a daemon restart or reboot.
 
 .. warning::
@@ -25,7 +25,7 @@ import requests
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
-from reachy_mini.daemon import daemon_config
+from reachy_mini.daemon import startup_app_config
 
 router = APIRouter(prefix="/audio-devices")
 logger = logging.getLogger(__name__)
@@ -78,8 +78,8 @@ def _ensure_loaded() -> None:
     with _LOAD_LOCK:
         if _loaded:
             return
-        _selected_input_device = daemon_config.get_selected_audio_input()
-        _selected_output_device = daemon_config.get_selected_audio_output()
+        _selected_input_device = startup_app_config.get_selected_audio_input()
+        _selected_output_device = startup_app_config.get_selected_audio_output()
         _loaded = True
         if _selected_input_device or _selected_output_device:
             logger.info(
@@ -224,7 +224,7 @@ async def set_selected_output_device(
 
     changed = request.device_name != _selected_output_device
     _selected_output_device = request.device_name
-    daemon_config.set_selected_audio_output(_selected_output_device)
+    startup_app_config.set_selected_audio_output(_selected_output_device)
     logger.info(f"Output device set to: {_selected_output_device} (aec: {match.aec})")
     if changed:
         _apply_device_change(http_request)
@@ -239,7 +239,7 @@ async def clear_selected_output_device(http_request: Request) -> SelectedDeviceR
     _ensure_loaded()
     changed = _selected_output_device is not None
     _selected_output_device = None
-    daemon_config.set_selected_audio_output(None)
+    startup_app_config.set_selected_audio_output(None)
     logger.info("Output device cleared, using default")
     if changed:
         _apply_device_change(http_request)
@@ -271,7 +271,7 @@ async def set_selected_input_device(
 
     changed = request.device_name != _selected_input_device
     _selected_input_device = request.device_name
-    daemon_config.set_selected_audio_input(_selected_input_device)
+    startup_app_config.set_selected_audio_input(_selected_input_device)
     logger.info(f"Input device set to: {_selected_input_device}")
     if changed:
         _apply_device_change(http_request)
@@ -286,7 +286,7 @@ async def clear_selected_input_device(http_request: Request) -> SelectedDeviceRe
     _ensure_loaded()
     changed = _selected_input_device is not None
     _selected_input_device = None
-    daemon_config.set_selected_audio_input(None)
+    startup_app_config.set_selected_audio_input(None)
     logger.info("Input device cleared, using default")
     if changed:
         _apply_device_change(http_request)
