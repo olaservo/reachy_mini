@@ -38,10 +38,14 @@ from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
-# The CH340 USB-serial chip used by the Arduino Nano shares its vendor id with
-# the Reachy Mini motor controller, so we must exclude the robot's product id
-# when auto-detecting the NFC reader's port.
-DEFAULT_NFC_VID = 0x1A86
+# Vendor ids the reader board may enumerate as: the CH340 USB-serial chip used
+# by the Arduino Nano prototype, and SparkFun's vendor id for ATmega32U4 boards
+# (Pro Micro). The CH340 vendor id is shared with the Reachy Mini motor
+# controller, so we must exclude the robot's product id when auto-detecting.
+DEFAULT_NFC_VIDS = (
+    0x1A86,  # CH340 (Arduino Nano clones)
+    0x1B4F,  # SparkFun (Pro Micro)
+)
 REACHY_MOTOR_PID = 0x55D3
 
 MAX_WRITE_LEN = 12
@@ -82,24 +86,25 @@ class NfcWriteResult(BaseModel):
 
 
 def find_nfc_ports(
-    vid: int = DEFAULT_NFC_VID,
+    vids: tuple[int, ...] = DEFAULT_NFC_VIDS,
     exclude_pids: tuple[int, ...] = (REACHY_MOTOR_PID,),
     comports: list | None = None,
 ) -> list[str]:
     """Return candidate serial ports for the NFC reader.
 
     Matches USB devices by vendor id while excluding the Reachy Mini motor
-    controller's product id (it shares the same vendor id).
+    controller's product id (it shares the CH340 vendor id).
 
     Args:
-        vid: USB vendor id to match (default: CH340 ``0x1A86``).
+        vids: USB vendor ids to match (default: CH340 ``0x1A86`` and SparkFun
+            ``0x1B4F``).
         exclude_pids: product ids to ignore (default: the robot motor board).
         comports: optional list of ports (for testing); defaults to the live
             ``serial.tools.list_ports.comports()``.
 
     """
     ports = comports if comports is not None else serial.tools.list_ports.comports()
-    return [p.device for p in ports if p.vid == vid and p.pid not in exclude_pids]
+    return [p.device for p in ports if p.vid in vids and p.pid not in exclude_pids]
 
 
 def _now() -> datetime:
