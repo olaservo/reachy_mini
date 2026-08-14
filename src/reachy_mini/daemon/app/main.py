@@ -10,6 +10,7 @@ managing the robot's state.
 import argparse
 import asyncio
 import logging
+import sys
 import types
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
@@ -58,6 +59,7 @@ from reachy_mini.utils.wireless_version.startup_check import (
     check_and_fix_venvs_ownership,
     check_and_sync_apps_venv_sdk,
     check_and_update_bluetooth_service,
+    check_and_update_gpio_shutdown_service,
     check_and_update_wireless_launcher,
 )
 
@@ -136,6 +138,9 @@ def create_app(args: Args, health_check_event: asyncio.Event | None = None) -> F
             args.fastapi_port,
             wireless_version=args.wireless_version,
         )
+        # Exposed on app.state so the `/api/daemon/robot-name` route can
+        # re-advertise the LAN record live on a rename (BLE setup path).
+        app.state.mdns = mdns
 
         def preload_with_logging() -> None:
             """Download datasets with logging."""
@@ -226,6 +231,23 @@ def create_app(args: Args, health_check_event: asyncio.Event | None = None) -> F
 
             # Register mDNS service only after the daemon is ready
             mdns.register()
+
+            # Wire the live rename hook now that both the daemon (relay +
+            # status) and the mDNS registration exist. A `set_robot_name`
+            # command then applies without a restart: daemon status + central
+            # relay (via apply_robot_name) and the LAN mDNS record (re-register).
+            daemon_instance = app.state.daemon
+            if daemon_instance.backend is not None:
+
+                def _apply_robot_name_live(
+                    name: str,
+                    _daemon: Daemon = daemon_instance,
+                    _mdns: MdnsServiceRegistration = mdns,
+                ) -> None:
+                    _daemon.apply_robot_name(name)
+                    _mdns.update_name(name)
+
+                daemon_instance.backend.set_robot_name_callback(_apply_robot_name_live)
 
             yield
         finally:
@@ -468,20 +490,52 @@ def create_app(args: Args, health_check_event: asyncio.Event | None = None) -> F
     return app
 
 
-def run_app(args: Args) -> None:
-    """Run the FastAPI app with Uvicorn."""
-    # Configure logging to ensure all logs go to stderr (captured by systemd)
-    import sys
+def configure_root_logging(log_level: str, log_file: str | None = None) -> None:
+    """Install the daemon's log handlers on the root logger.
+
+    Call this before anything that logs, in particular before the wireless
+    startup checks: an unconfigured root logger sits at its WARNING default
+    with no handlers, so every INFO emitted before this point is discarded
+    and every WARNING falls back to logging.lastResort.
+
+    stderr is what systemd captures into the journal. A log file, when asked
+    for, is added alongside rather than instead.
+    """
+    formatter = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
 
     root_logger = logging.getLogger()
-    root_logger.setLevel(args.log_level)
-
-    # Create handler that writes to stderr with immediate flush
-    handler = logging.StreamHandler(sys.stderr)
-    handler.setLevel(args.log_level)
-    handler.setFormatter(logging.Formatter("%(name)s - %(levelname)s - %(message)s"))
+    root_logger.setLevel(log_level)
+    # Drop anything a library installed at import time, then own the config.
     root_logger.handlers.clear()
+
+    # Handler that writes to stderr with immediate flush
+    handler = logging.StreamHandler(sys.stderr)
+    handler.setLevel(log_level)
+    handler.setFormatter(formatter)
     root_logger.addHandler(handler)
+
+    if log_file:
+        file_handler = logging.FileHandler(log_file, mode="a")
+        file_handler.setFormatter(formatter)
+        root_logger.addHandler(file_handler)
+
+
+def run_app(args: Args) -> None:
+    """Run the FastAPI app with Uvicorn."""
+    # Handlers are installed by configure_root_logging() in main(), before the
+    # startup checks; this is only the handle used by the hooks below.
+    root_logger = logging.getLogger()
+
+    # Surface a persisted rename so an operator isn't puzzled when the
+    # advertised name differs from the --robot-name they passed.
+    from reachy_mini.utils.robot_name import get_robot_name as _get_persisted_name
+
+    if _get_persisted_name():
+        logger.info(
+            "Robot name %r comes from a persisted rename and overrides the "
+            "--robot-name default.",
+            args.robot_name,
+        )
 
     # Explicitly configure the apps.manager logger to ensure propagation
     apps_logger = logging.getLogger("reachy_mini.apps.manager")
@@ -786,23 +840,30 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    if args.log_file:
-        file_handler = logging.FileHandler(args.log_file, mode="a")
-        file_handler.setFormatter(
-            logging.Formatter("%(name)s - %(levelname)s - %(message)s")
-        )
-        logging.getLogger().addHandler(file_handler)
-        logging.getLogger().setLevel(args.log_level)
+    # A name set by a client (e.g. the mobile app over the data channel) is
+    # persisted on the robot and wins over the CLI default so the rename
+    # survives reboots. Fail-safe: falls back to --robot-name on any error.
+    from reachy_mini.utils.robot_name import get_robot_name as get_persisted_robot_name
+
+    persisted_robot_name = get_persisted_robot_name()
+    if persisted_robot_name:
+        args.robot_name = persisted_robot_name
+
+    # Before the startup checks, not after: run_app() used to be the first
+    # thing to configure logging, which left everything logged here going to
+    # an unconfigured root logger (WARNING, no handlers) and silently dropped.
+    configure_root_logging(args.log_level, args.log_file)
 
     if args.wireless_version:
         # Check and fix ownership of /venvs directory
-        check_and_fix_venvs_ownership(custom_logger=logging.getLogger())
+        check_and_fix_venvs_ownership()
 
         # Check and update bluetooth service if needed
         check_and_update_bluetooth_service()
 
         # Check and update wireless launcher if needed
         check_and_update_wireless_launcher()
+        check_and_update_gpio_shutdown_service()
 
         # Check and sync apps_venv SDK version with daemon
         check_and_sync_apps_venv_sdk()

@@ -7,7 +7,7 @@ choice survives reboots and app updates, stays per-user (not shared across OS
 accounts on one machine), and can be set over the REST API instead of only via a
 CLI flag.
 
-Every setting is a key in one file, so the read-modify-write in :func:`_set_str`
+Every setting is a key in one file, so the read-modify-write in :func:`_update`
 is serialised under ``_LOCK``: without it, two settings written concurrently
 would lose one of the two. The write itself goes to a temp file that is
 atomically renamed into place, so a power loss mid-write (the robot is
@@ -29,6 +29,8 @@ _STARTUP_APP_KEY = "startup_app"
 _AUDIO_INPUT_KEY = "selected_audio_input"
 _AUDIO_OUTPUT_KEY = "selected_audio_output"
 _EQ_KEY = "speaker_eq_gains"
+_TURN_KEY = "turn_enabled"
+_FIRST_WAKE_UP_KEY = "first_wake_up_completed"
 # equalizer-10bands accepts per-band gains in [-24, +12] dB.
 _EQ_GAIN_MIN, _EQ_GAIN_MAX = -24.0, 12.0
 
@@ -75,14 +77,18 @@ def _get_str(key: str) -> str | None:
     return value if isinstance(value, str) else None
 
 
-def _set_str(key: str, value: str | None) -> None:
-    """Persist a string setting; a falsy value clears the key."""
+def _update(key: str, value: object | None) -> None:
+    """Read-modify-write a single config key; ``None`` clears it.
+
+    Other keys are preserved. May raise OSError on a write error; callers
+    that must never raise (e.g. the daemon command loop) wrap it themselves.
+    """
     with _LOCK:
         config = _read()
-        if value:
-            config[key] = value
-        else:
+        if value is None:
             config.pop(key, None)
+        else:
+            config[key] = value
 
         path = _config_path()
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -95,6 +101,11 @@ def _set_str(key: str, value: str | None) -> None:
             f.flush()
             os.fsync(f.fileno())
         os.replace(tmp, path)
+
+
+def _set_str(key: str, value: str | None) -> None:
+    """Persist a string setting; a falsy value clears the key."""
+    _update(key, value or None)
 
 
 def get_startup_app() -> str | None:
@@ -159,3 +170,60 @@ def get_speaker_eq_gains() -> list[float] | None:
         _EQ_GAIN_MAX,
     )
     return None
+
+
+def _get_bool(key: str) -> bool | None:
+    """Return the boolean at `key`, or None when unset or malformed.
+
+    A present-but-malformed value is warned about (so the user knows their
+    hand-edited config was ignored) and treated as unset.
+    """
+    config = _read()
+    if key not in config:
+        return None
+    value = config[key]
+    if isinstance(value, bool):
+        return value
+    logger.warning(
+        "Ignoring invalid '%s' in daemon config (need true or false); "
+        "using the built-in default.",
+        key,
+    )
+    return None
+
+
+def get_turn_enabled() -> bool | None:
+    """Return whether the media server should offer TURN relay candidates.
+
+    Returns None if unset or malformed, so the caller keeps its default. A
+    relay lets a remote consumer behind a restrictive NAT reach the robot;
+    turning it off saves a background thread refreshing credentials on a
+    robot that is only ever reached from its own network.
+    """
+    return _get_bool(_TURN_KEY)
+
+
+def get_first_wake_up_completed() -> bool:
+    """Return True if the first wake-up setup wizard has been completed.
+
+    Robot-wide, persistent flag (not per-session): the mobile / desktop apps
+    run a one-time, post-connection hardware diagnostic wizard, and gate it on
+    this so it only ever shows once, whichever client connects. Defaults to
+    False (wizard pending) when unset or malformed, so a config problem can
+    never trap the daemon command loop.
+    """
+    return _get_bool(_FIRST_WAKE_UP_KEY) is True
+
+
+def set_first_wake_up_completed(is_completed: bool) -> bool:
+    """Persist the first wake-up completion flag. Returns True on success.
+
+    Fail-safe: a write error is logged and reported as False instead of
+    raising, so a storage problem can't break the daemon command loop.
+    """
+    try:
+        _update(_FIRST_WAKE_UP_KEY, bool(is_completed))
+        return True
+    except OSError as e:
+        logger.warning(f"Could not persist first-wake-up flag: {e}")
+        return False

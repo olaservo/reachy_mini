@@ -280,6 +280,75 @@ class Daemon:
         except Exception as e:
             self.logger.debug(f"Error stopping central signaling relay: {e}")
 
+    def _on_robot_slot_free(self, expect_handoff: bool) -> None:
+        """Return the robot to a clean idle state when the app slot frees.
+
+        Wired into ``robot_app_lock`` so that when a remote session ends/drops
+        or a local app exits, the daemon - not the client - guarantees the robot
+        doesn't stay parked awake (enabled / gravity_compensation) across
+        sessions. Best-effort, non-blocking; the actual work is scheduled
+        threadsafely on the backend's loop. Fires on both graceful and abnormal
+        teardown (crash, killed tab, lost Wi-Fi), which is the whole point:
+        those paths run no client-side cleanup.
+
+        Args:
+            expect_handoff: True when the session ended on purpose to let a
+                successor take the slot, which buys the incoming session a much
+                longer grace period before the robot is put back to sleep.
+
+        """
+        backend = self.backend
+        if backend is None:
+            return
+        try:
+            backend.request_idle_reset(expect_handoff=expect_handoff)
+        except Exception as e:
+            self.logger.warning(f"Idle reset request failed: {e}")
+
+    def _on_robot_slot_acquired(self) -> None:
+        """Cancel any pending idle reset when a remote session takes the slot.
+
+        Counterpart of ``_on_robot_slot_free``: the successor now owns the
+        robot, so the previous session's grace timer must not fire under it.
+        Without this, only the successor's first data-channel command cancels
+        the timer - a WebRTC handshake slower than the handoff grace would
+        let the daemon goto_sleep mid-session.
+        """
+        backend = self.backend
+        if backend is None:
+            return
+        try:
+            backend.cancel_idle_reset()
+        except Exception as e:
+            self.logger.warning(f"Idle reset cancel failed: {e}")
+
+    def apply_robot_name(self, name: str) -> None:
+        """Apply a new robot name to the live daemon without a restart.
+
+        Refreshes the in-memory name and the daemon status, then nudges the
+        central relay so its next heartbeat advertises the new label. The
+        persistent store (``utils/robot_name``) is written by the caller
+        (the ``set_robot_name`` command handler); this only updates the
+        live/advertised copies. mDNS re-registration is wired separately in
+        the app lifespan, which owns the ``MdnsServiceRegistration``.
+
+        Safe to call from the backend's command thread: it only mutates
+        attributes and calls the relay's thread-safe name setter.
+        """
+        new_name = (name or "").strip()
+        if not new_name:
+            return
+        self.robot_name = new_name
+        self._status.robot_name = new_name
+        try:
+            from reachy_mini.media.central_signaling_relay import (
+                notify_robot_name_change,
+            )
+
+            notify_robot_name_change(new_name)
+        except Exception as e:
+            self.logger.warning(f"Failed to update relay robot name: {e}")
+
     async def start(
         self,
         sim: bool = False,
@@ -400,6 +469,21 @@ class Daemon:
                     self.backend.set_start_update_callback(self._spawn_webrtc_update)
                 self._media_server.start()
 
+            # Reset the robot to a clean idle state whenever the managed app
+            # slot becomes free (remote session end/drop or local app exit), so
+            # no client can leave it parked awake across sessions. Registered
+            # after the backend loop is up (setup_media_server) so
+            # `request_idle_reset()` has a loop to hop onto, and *before* the
+            # relay starts so no remote session can slip through unwired.
+            self.robot_app_lock.set_on_became_free_handler(self._on_robot_slot_free)
+            # Counterpart: a remote successor taking the slot cancels any
+            # pending idle reset right away, instead of relying on its first
+            # data-channel command to do it - a handshake slower than the
+            # handoff grace would otherwise take a goto_sleep mid-session.
+            self.robot_app_lock.set_on_remote_acquired_handler(
+                self._on_robot_slot_acquired
+            )
+
             # Wire the JSON-RPC app relay now that the backend + broadcast
             # paths exist. Runs on this (the main) loop; the DataChannel
             # transport schedules frames onto it.
@@ -479,6 +563,13 @@ class Daemon:
             self.backend.is_shutting_down = True
             self._thread_event_publish_status.set()
 
+            # Unwire the idle-reset hooks before tearing down the relay: stopping
+            # the relay releases the remote hold on `robot_app_lock`, which would
+            # otherwise fire `_on_robot_slot_free` and race the explicit
+            # goto_sleep below with a second one.
+            self.robot_app_lock.set_on_became_free_handler(None)
+            self.robot_app_lock.set_on_remote_acquired_handler(None)
+
             # Close the JSON-RPC app relay (drops the app /rpc connection and
             # fails any in-flight calls) before tearing the backend down.
             if self._jsonrpc_relay is not None:
@@ -496,9 +587,11 @@ class Daemon:
             if goto_sleep_on_stop:
                 try:
                     self.logger.info("Putting Reachy Mini to sleep...")
-                    self.backend.set_motor_control_mode(MotorControlMode.Enabled)
-                    await self.backend.goto_sleep()
-                    self.backend.set_motor_control_mode(MotorControlMode.Disabled)
+                    # Whatever the last app left behind (gravity compensation,
+                    # limp motors, a per-motor torque cut), reset_to_sleep
+                    # re-establishes position control before moving and ends
+                    # limp at the sleep pose - so no explicit disable here.
+                    await self.backend.reset_to_sleep()
                 except Exception as e:
                     self.logger.error(f"Error while putting Reachy Mini to sleep: {e}")
                     self._status.state = DaemonState.ERROR

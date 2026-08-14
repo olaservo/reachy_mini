@@ -92,6 +92,12 @@ class RobotBackend(Backend):
 
         self.motor_control_mode = self._infer_control_mode()
         self._torque_enabled = self.motor_control_mode != MotorControlMode.Disabled
+        # set_motor_torque_ids() drives the controller under the global mode's
+        # back, so afterwards `motor_control_mode` describes an intent the
+        # hardware no longer matches. This flag records that divergence so the
+        # next set_motor_control_mode() does the real work instead of
+        # short-circuiting on an equal-looking mode.
+        self._partial_torque_override = False
         self.logger.info(f"Motor control mode: {self.motor_control_mode}")
         self.last_alive: float | None = None
 
@@ -134,6 +140,16 @@ class RobotBackend(Backend):
                 self.bmi088 = None
         else:
             self.bmi088 = None
+
+        # Latest IMU reading as (msg, monotonic ts), refreshed by the control
+        # loop and served by `get_imu_data`. Only `_read_imu` (see its
+        # docstring) may touch the BMI088.
+        self._last_imu: tuple[ImuDataMsg, float] | None = None
+
+    # A cached reading older than this is treated as absent: 0.5 s is 25
+    # control-loop periods at 50 Hz, so the loop is stalled (e.g. died on a
+    # motor error) and the data no longer describes the present.
+    IMU_CACHE_FRESH_S = 0.5
 
     def run(self) -> None:
         """Run the control loop for the robot backend.
@@ -257,10 +273,16 @@ class RobotBackend(Backend):
                         )
                     )
 
-                    if self.imu_publisher is not None and self.bmi088 is not None:
-                        imu_msg = self.get_imu_data()
+                    # Note: this block inherits the joint/pose publisher
+                    # guards above, so the IMU cache is only refreshed once
+                    # `WSServer.start()` has wired the publishers (it sets
+                    # all four together).
+                    if self.bmi088 is not None:
+                        imu_msg = self._read_imu()
                         if imu_msg is not None:
-                            self.imu_publisher.put(imu_msg)
+                            self._last_imu = (imu_msg, time.monotonic())
+                            if self.imu_publisher is not None:
+                                self.imu_publisher.put(imu_msg)
 
                 self.last_alive = time.time()
 
@@ -495,7 +517,29 @@ class RobotBackend(Backend):
         return np.array(self.get_all_joint_positions()[1])
 
     def get_imu_data(self) -> ImuDataMsg | None:
-        """Get current IMU data (accelerometer, gyroscope, quaternion, temperature).
+        """Return the latest IMU reading cached by the control loop.
+
+        Returns:
+            An ImuDataMsg, or None if the IMU is missing or the cache is
+            older than ``IMU_CACHE_FRESH_S``.
+
+        """
+        cached = self._last_imu
+        if cached is None:
+            return None
+        msg, ts = cached
+        if time.monotonic() - ts > self.IMU_CACHE_FRESH_S:
+            return None
+        return msg
+
+    def _read_imu(self) -> ImuDataMsg | None:
+        """Read the BMI088 directly. Control-loop only.
+
+        The loop must stay the sensor's only reader: `get_quat(dt)`
+        integrates the orientation filter with a fixed loop period, so an
+        on-demand read would both race the i2c conversation and inject a
+        spurious integration step. Everyone else reads the `_last_imu`
+        cache through `get_imu_data`.
 
         Returns:
             An ImuDataMsg, or None if IMU is not available.
@@ -563,9 +607,13 @@ class RobotBackend(Backend):
 
     def set_motor_control_mode(self, mode: MotorControlMode) -> None:
         """Set the motor control mode."""
-        # Check if the mode is already set
-        if mode == self.motor_control_mode:
+        # Check if the mode is already set. A pending per-motor override means
+        # the stored mode no longer describes the hardware, so re-apply it even
+        # when it looks unchanged - that re-torques the motors an app detorqued
+        # individually.
+        if mode == self.motor_control_mode and not self._partial_torque_override:
             return
+        self._partial_torque_override = False
 
         if mode == MotorControlMode.Enabled:
             if self.motor_control_mode == MotorControlMode.GravityCompensation:
@@ -613,6 +661,10 @@ class RobotBackend(Backend):
             self.c.enable_torque_on_ids(ids_int)
         else:
             self.c.disable_torque_on_ids(ids_int)
+
+        # Either direction leaves a subset in a state the global mode doesn't
+        # know about, so both must force the next mode set to re-apply.
+        self._partial_torque_override = True
 
     def _infer_control_mode(self) -> MotorControlMode:
         assert self.c is not None, "Motor controller not initialized or already closed."
@@ -696,5 +748,3 @@ class RobotBackend(Backend):
 
         result: bytes = bytes(self.c.write_raw_packet(packet))
         return result
-
-
