@@ -280,7 +280,8 @@ class GStreamerAudio(AudioBase):
             self._resolved_sink_id = get_audio_device(
                 "Sink", target_name=self._output_device or DEFAULT_AUDIO_TARGET
             )
-        return self._resolved_sink_id
+        resolved: Optional[str] = self._resolved_sink_id
+        return resolved
 
     @staticmethod
     def _audiosink_spec(
@@ -315,6 +316,8 @@ class GStreamerAudio(AudioBase):
         # directly, without enumerating (see _sink_device_id for why enumeration
         # is costly). Any selection, or a non-wireless host, goes through the
         # resolve + spec path.
+        factory: str
+        prop: Optional[tuple[str, str]]
         if self._output_device is None and has_reachymini_asoundrc():
             factory, prop = "alsasink", ("device", "reachymini_audio_sink")
             self.logger.info("Using .asoundrc audio sink: reachymini_audio_sink")

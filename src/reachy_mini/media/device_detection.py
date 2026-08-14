@@ -274,7 +274,7 @@ _DEVICE_CACHE_LOCK = threading.Lock()
 
 
 def _has_pipewire_node(gst_devices: Any) -> bool:
-    """True if any ``Gst.Device`` exposes a ``node.name`` (i.e. PipeWire is up)."""
+    """Return True if any ``Gst.Device`` exposes a ``node.name`` (PipeWire is up)."""
     for device in gst_devices:
         props = device.get_properties()
         if props is not None and props.get_string("node.name"):

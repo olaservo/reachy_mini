@@ -197,6 +197,11 @@ def _build_tee_bin(monkeypatch: pytest.MonkeyPatch) -> Gst.Bin:
     )
     inst = object.__new__(GStreamerAudio)
     inst.logger = _LOG
+    # No explicit device selection, and the sink id is pre-resolved to "no
+    # specific device" so building the bin can't trigger a real device
+    # enumeration. The sink element itself is not what these tests assert on.
+    inst._output_device = None
+    inst._resolved_sink_id = None
     # Satisfy the wobbler callback and __del__/cleanup on this half-built instance.
     inst._head_wobbler = None
     inst._doa = types.SimpleNamespace(close=lambda: None)

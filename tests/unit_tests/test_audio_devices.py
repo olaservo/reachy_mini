@@ -15,7 +15,7 @@ from typing import Any, List
 
 import pytest
 
-from reachy_mini.daemon import daemon_config
+from reachy_mini.daemon import startup_app_config
 from reachy_mini.daemon.app.routers import audio_devices
 from reachy_mini.media.device_detection import DeviceInfo
 from test_device_detection import _parse
@@ -49,7 +49,7 @@ def isolated_state(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     would leak its selection into the next one.
     """
     monkeypatch.setattr(
-        daemon_config, "_config_path", lambda: tmp_path / "daemon_config.json"
+        startup_app_config, "_config_path", lambda: tmp_path / "daemon_config.json"
     )
     monkeypatch.setattr(audio_devices, "_selected_input_device", None)
     monkeypatch.setattr(audio_devices, "_selected_output_device", None)
@@ -127,14 +127,15 @@ class TestSelectionPersistence:
             )
         )
         assert (
-            daemon_config.get_selected_audio_output() == "Built-in Audio Analog Stereo"
+            startup_app_config.get_selected_audio_output()
+            == "Built-in Audio Analog Stereo"
         )
 
     def test_selection_is_restored_after_a_restart(
         self, sinks: List[DeviceInfo], monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        daemon_config.set_selected_audio_output("Reachy Mini Audio Analog Stereo")
-        daemon_config.set_selected_audio_input("Reachy Mini Audio Analog Stereo")
+        startup_app_config.set_selected_audio_output("Reachy Mini Audio Analog Stereo")
+        startup_app_config.set_selected_audio_input("Reachy Mini Audio Analog Stereo")
         # Fresh process: nothing loaded yet, as after a daemon restart.
         assert audio_devices.get_local_selected_output() == (
             "Reachy Mini Audio Analog Stereo"
@@ -147,9 +148,9 @@ class TestSelectionPersistence:
         self, sinks: List[DeviceInfo], monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.setattr(audio_devices, "_filtered_devices", lambda _cls: sinks)
-        daemon_config.set_selected_audio_output("Built-in Audio Analog Stereo")
+        startup_app_config.set_selected_audio_output("Built-in Audio Analog Stereo")
         asyncio.run(audio_devices.clear_selected_output_device(_fake_request()))
-        assert daemon_config.get_selected_audio_output() is None
+        assert startup_app_config.get_selected_audio_output() is None
         assert audio_devices.get_local_selected_output() is None
 
     def test_unknown_device_is_rejected_and_not_persisted(
@@ -166,14 +167,14 @@ class TestSelectionPersistence:
                 )
             )
         assert excinfo.value.status_code == 404
-        assert daemon_config.get_selected_audio_output() is None
+        assert startup_app_config.get_selected_audio_output() is None
 
     def test_audio_selection_does_not_clobber_the_startup_app(
         self, sinks: List[DeviceInfo], monkeypatch: pytest.MonkeyPatch
     ) -> None:
         # Both settings share one JSON file; a write of either must keep the other.
         monkeypatch.setattr(audio_devices, "_filtered_devices", lambda _cls: sinks)
-        daemon_config.set_startup_app("my_app")
+        startup_app_config.set_startup_app("my_app")
         asyncio.run(
             audio_devices.set_selected_output_device(
                 audio_devices.SetDeviceRequest(
@@ -182,4 +183,4 @@ class TestSelectionPersistence:
                 _fake_request(),
             )
         )
-        assert daemon_config.get_startup_app() == "my_app"
+        assert startup_app_config.get_startup_app() == "my_app"
