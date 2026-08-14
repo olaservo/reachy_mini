@@ -1,1 +1,1 @@
-{"id":"696d7c667b95e20b3d15687b1144ebc2","fullName":"tests.unit_tests.test_daemon#test_daemon_client_disconnection","name":"test_daemon_client_disconnection","status":"passed","testResultsByEnv":{"default":"4d5d308a5c2a9fa827798c905cd847f3"}}
+{"id":"696d7c667b95e20b3d15687b1144ebc2","fullName":"tests.unit_tests.test_daemon#test_daemon_client_disconnection","name":"test_daemon_client_disconnection","status":"passed","testResultsByEnv":{"default":"0a5b2955847299ab39f127ef5032792e"}}

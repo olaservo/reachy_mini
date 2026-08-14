@@ -1,1 +1,1 @@
-{"id":"bd18f79d3f97419a327a5eb9f6571fbe","fullName":"tests.unit_tests.test_device_detection.TestParser#test_pipewire_has_reachy_audio_source","name":"test_pipewire_has_reachy_audio_source","status":"passed","testResultsByEnv":{"default":"ff55d69b9b6cd57ca5d0e5c7b636672e"}}
+{"id":"bd18f79d3f97419a327a5eb9f6571fbe","fullName":"tests.unit_tests.test_device_detection.TestParser#test_pipewire_has_reachy_audio_source","name":"test_pipewire_has_reachy_audio_source","status":"passed","testResultsByEnv":{"default":"d74e9c774178253b657caf9d5a8386f5"}}

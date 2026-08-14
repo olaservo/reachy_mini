@@ -1,1 +1,1 @@
-{"id":"6705fe2be4094050079c849f08fed963","fullName":"tests.unit_tests.test_backend_motion#test_set_target_antenna_joint_positions","name":"test_set_target_antenna_joint_positions","status":"passed","testResultsByEnv":{"default":"93531cb836e03bb50c0ccfcfc2635229"}}
+{"id":"6705fe2be4094050079c849f08fed963","fullName":"tests.unit_tests.test_backend_motion#test_set_target_antenna_joint_positions","name":"test_set_target_antenna_joint_positions","status":"passed","testResultsByEnv":{"default":"f6d05588696dc02247c7f34e4a3d9270"}}

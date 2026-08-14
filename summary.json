@@ -1,772 +1,97 @@
 {
   "stats": {
-    "total": 824,
-    "new": 124,
-    "passed": 809,
-    "skipped": 15
+    "total": 892,
+    "passed": 877,
+    "skipped": 15,
+    "new": 69
   },
   "status": "passed",
   "newTests": [
-    {
-      "id": "de7e3bf4533aad5cb78e3d49aa637af3",
-      "name": "test_no_evict_start_reports_busy_managed_slot",
-      "status": "passed",
-      "duration": 32
-    },
-    {
-      "id": "ca03c27cff211eecfa5c3ab65e93f88a",
-      "name": "test_oauth_token_is_not_retained_when_permissions_cannot_be_enforced",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "05a1aa3443e08fcfb8a209c9d38344a8",
-      "name": "test_wake_up_force_replays_even_when_awake_at_init",
-      "status": "passed",
-      "duration": 204
-    },
-    {
-      "id": "75b09d3faacf4450efb6a1aa592cea6b",
-      "name": "test_subscribe_without_a_known_peer_drops_the_subscription",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "83c893d64de8bfb616c08d906cab3505",
-      "name": "test_arm_pose_push_is_idempotent",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "dc28db1317de4952f81821179dd71180",
-      "name": "test_build_state_json_wraps_state_and_increments_seq",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "62d1cd0d194d206ef7b7eb1e3f052bc9",
-      "name": "test_unsubscribe_pose_delegates_to_media_server",
-      "status": "passed",
-      "duration": 2
-    },
-    {
-      "id": "7522f8e0b4ce68d81c8b102c06c04ab9",
-      "name": "test_became_free_handler_reports_handoff_intent",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "f16726daf846c95b2d834e5cf1f5dbb8",
-      "name": "test_get_imu_data_cache_freshness",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "bab8f105ff492f5a191e9eb63b8e9a9f",
-      "name": "test_wake_up_runs_in_full_when_asleep",
-      "status": "passed",
-      "duration": 204
-    },
-    {
-      "id": "e1ac2a5060faed6b17d471e0a373f797",
-      "name": "test_poller_swallows_usb_errors",
-      "status": "passed",
-      "duration": 21
-    },
-    {
-      "id": "161ed2b19d9499f6bfb3a856b05b85f4",
-      "name": "test_set_trims_surrounding_whitespace",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "b54d6ee7ff725a6b52d6f67dc64e842a",
-      "name": "test_remote_acquire_cancels_pending_handoff_grace_reset",
-      "status": "passed",
-      "duration": 301
-    },
-    {
-      "id": "40b664e66358100bb2dad80f6b475629",
-      "name": "test_named_daemon_auto_discovers_and_tries_all_addresses",
-      "status": "passed",
-      "duration": 3306
-    },
-    {
-      "id": "0ce387dae6d09c669ca3dbba09ab4f39",
-      "name": "test_update_restart_failure_propagates",
-      "status": "passed",
-      "duration": 2
-    },
-    {
-      "id": "4ce92097073f203825ac9934824573a8",
-      "name": "test_subscribing_opens_the_pose_channel",
-      "status": "passed",
-      "duration": 2
-    },
-    {
-      "id": "b3a072d221f4c46b3b2aa95ea69a009d",
-      "name": "test_idle_reset_sleeps_after_debounce",
-      "status": "passed",
-      "duration": 21
-    },
-    {
-      "id": "b7b0207369adca897c86f04c4107b6db",
-      "name": "test_face_tracker_falls_back_when_v4l2convert_is_missing",
-      "status": "passed",
-      "duration": 212
-    },
-    {
-      "id": "a93e490c19a857e2edf4a99500a5be08",
-      "name": "test_named_daemon_falls_back_to_host_when_mdns_misses",
-      "status": "passed",
-      "duration": 3251
-    },
-    {
-      "id": "c8180b1fd4354931017e316fca0e90f5",
-      "name": "test_set_rejects_non_string",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "b42ccaac80c48ddac9e1c1f55fee3f44",
-      "name": "test_cancel_signals_the_polling_thread",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "dcd4ff9ff7862bbfefad32fe0a36950e",
-      "name": "test_call_logger_wrapper_success",
-      "status": "passed",
-      "duration": 2
-    },
-    {
-      "id": "e1d2e402c1b810d85e4ddca9bb10b2c3",
-      "name": "test_get_is_failsafe_on_corrupt_json",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "a90d937d6c38519c72b9864324e3ad8d",
-      "name": "test_update_apps_venv_failure_still_restarts",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "f96f938588ccdb6c2dcab6c3e18edab7",
-      "name": "test_named_daemon_host_fallback_rejects_wrong_name",
-      "status": "passed",
-      "duration": 2844
-    },
-    {
-      "id": "68d9bfa5498f1186e8c621aa5c01ef6a",
-      "name": "test_finally_does_not_clobber_newer_task",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "91e1b9bf78515cd415219331d7914d6e",
-      "name": "test_get_imu_without_imu",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "4ffe62f4461a8ad33c061c3e4dab2a77",
-      "name": "test_poll_expired_maps_to_expired_status",
-      "status": "passed",
-      "duration": 2
-    },
-    {
-      "id": "1164e411efaf8ae74b7cff480782e6bd",
-      "name": "test_authorized_session_gets_bounded_ttl",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "1f9086c0f83f588f0bbffe17db672e56",
-      "name": "test_get_returns_none_when_unset",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "959168200cf8747fc56920c461e7f2ca",
-      "name": "test_start_returns_error_when_request_fails",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "f8e90bf73090575c4abe0c49173121fe",
-      "name": "test_update_daemon_install_failure_aborts_before_restart",
-      "status": "passed",
-      "duration": 2
-    },
-    {
-      "id": "492f82cfe3c8a0e5c4ec557fcc789312",
-      "name": "test_get_ignores_non_string_name",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "ea8513cfd72dc9ebf3d5a54e29f4106a",
-      "name": "test_remote_acquired_handler_fires_on_successful_acquire",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "e0d82cd3f4c71f5bf845b9a9203247b7",
-      "name": "test_broadcast_before_any_client_is_noop",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "83d778af0b2e4ef9f6755c9b8aaaddc4",
-      "name": "test_set_rejects_empty_or_whitespace[   ]",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "0b886ceae72b75640b2a487f1d1ae452",
-      "name": "test_became_free_handler_not_fired_on_noop_release",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "df56fccd6c8d995ce789585e065f156f",
-      "name": "test_timer_rearms_after_disarming",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "7dfc80a317c181f5b3bc9ec4a777836a",
-      "name": "test_wake_up_runs_when_antennas_off_init",
-      "status": "passed",
-      "duration": 204
-    },
-    {
-      "id": "6c439acb5e6c8cf0f074edd1f5115ecc",
-      "name": "test_close_joins_poller_and_releases_device",
-      "status": "passed",
-      "duration": 6
-    },
-    {
-      "id": "96c4a22cfdf7c3f61194a1d4a299d91d",
-      "name": "test_idle_reset_skips_when_shutting_down",
-      "status": "passed",
-      "duration": 21
-    },
-    {
-      "id": "99376a62d42ecffcbd29c5a20fed24ac",
-      "name": "test_subscribe_pose_delegates_to_media_server",
-      "status": "passed",
-      "duration": 2
-    },
-    {
-      "id": "a1b75ff72205d523ea408b43e107d648",
-      "name": "test_became_free_handler_fires_on_remote_release",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "8fef23c9b30d1b7a8c61f7b618fe8c56",
-      "name": "test_subscribing_arms_the_push_timer",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "5fcfe5e92bc3e060f8f1bd1fefdb250e",
-      "name": "test_poll_denied_maps_to_error_status",
-      "status": "passed",
-      "duration": 2
-    },
-    {
-      "id": "04c47d74eca76b047ad25301c5d1263f",
-      "name": "test_handoff_release_gets_the_long_grace",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "0a57a5a22ccb221d9bb66369bce9e398",
-      "name": "test_remote_acquired_handler_not_fired_on_local_acquire",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "15607f5db8452c67da9105b91a6d9ee3",
-      "name": "test_push_pose_disarms_without_provider",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "3e254614c2eefa20463c63aa285649f4",
-      "name": "test_wake_up_runs_when_no_target_commanded_yet",
-      "status": "passed",
-      "duration": 204
-    },
-    {
-      "id": "8b26b2058c814992f27854c3f4708a7b",
-      "name": "test_push_pose_broadcasts_to_subscribed_channels",
-      "status": "passed",
-      "duration": 2
-    },
-    {
-      "id": "60321d1a89e21d824fa2b5aae9fe37c9",
-      "name": "test_poller_stops_when_demand_ceases_and_clears_cache",
-      "status": "passed",
-      "duration": 53
-    },
-    {
-      "id": "396e00a9e007bcc258e9bacdc8046eb7",
-      "name": "test_set_pose_subscription_add_and_remove_is_idempotent",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "cad756aa4d6338ae7d16060491beade4",
-      "name": "test_push_pose_disarms_without_subscribers",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "29fa4ceede133fb9099d339bbf1498be",
-      "name": "test_status_authorized_includes_username",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "971226e286a79ef4f65c0c9a127cb721",
-      "name": "test_unavailable_device_never_polls",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "46e12e2506dc04510f30e8d45b3c6996",
-      "name": "test_became_free_handler_exception_is_swallowed",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "32b41fde384dde713f39862c10814267",
-      "name": "test_set_rejects_empty_or_whitespace[\\n\\t]",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "26f022d82aa6ac26e8324f897957e618",
-      "name": "test_set_pose_provider_arms_when_subscribers_already_waiting",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "f8e9296a9182041f591082d5c97d77c7",
-      "name": "test_push_pose_survives_a_failing_channel",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "53e0ebf6a2ca6850cd50201f2c0d585f",
-      "name": "test_antenna_touch_full_wake_when_enabled_but_off_pose",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "f2ca312ef1c93801dcbd668c80378d7e",
-      "name": "test_oauth_token_uses_huggingface_configured_path",
-      "status": "passed",
-      "duration": 3
-    },
-    {
-      "id": "f98a9e962f2e29c48d967be5e1339b19",
-      "name": "test_start_returns_user_code_and_registers_session",
-      "status": "passed",
-      "duration": 2
-    },
-    {
-      "id": "4efc62b6dba33c7b80d9eae754f52641",
-      "name": "test_delete_hf_token_error",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "5e06d04ebb23c5eb8ecb27a5a9abe516",
-      "name": "test_wake_up_runs_when_disabled_even_at_init_pose",
-      "status": "passed",
-      "duration": 204
-    },
-    {
-      "id": "b081c60f324b66d87867ab92a11cb79b",
-      "name": "test_get_imu_with_reading",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "aed997a36579daa1e758677a42288cf5",
-      "name": "test_consume_relay_pending_fires_once",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "e93e7dcdd320dc5340a774863cf01ffd",
-      "name": "test_device_code_error_is_exception",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "5ff8905d1239e9eb0716a202f2db1939",
-      "name": "test_wake_up_stands_down_despite_calibration_residual",
-      "status": "passed",
-      "duration": 102
-    },
-    {
-      "id": "ae17ddda71e5be3287b931a2600b970e",
-      "name": "test_set_is_failsafe_on_write_error",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "699cbc9e87aa225e50c715ba3aba1bcb",
-      "name": "test_idle_reset_skips_when_already_disabled",
-      "status": "passed",
-      "duration": 21
-    },
-    {
-      "id": "ce7f6cb3fd951dc78f75d73b7e726fe1",
-      "name": "test_status_unknown_session_is_expired",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "0ed8b0e1a60758bb8b323a815933f94f",
-      "name": "test_consumer_removal_drops_pose_state",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "abc941e2efac4e9ed97c7c3e812b020f",
-      "name": "test_build_state_dict_carries_doa",
-      "status": "passed",
-      "duration": 2
-    },
-    {
-      "id": "afd79435e9c399845625c0721bbe7121",
-      "name": "test_cancel_session_removes_it",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "93fc1891e4e22f9127dcdf51de8a5d22",
-      "name": "test_pose_channel_close_drops_channel_and_subscriber",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "987ce6bc3a72fae751bd869b7e1e846f",
-      "name": "test_set_caps_length_to_max",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "fa6aae503ece53bd7b0d4cc35a63f52d",
-      "name": "test_failed_channel_creation_drops_the_subscription",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "2291069765a6bea13e1caae8dbdafe84",
-      "name": "test_device_code_protocol_imports_exist",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "4f266f9c187f0dae6abba92dbf7cb3d9",
-      "name": "test_call_logger_wrapper_tolerated_returncode",
-      "status": "passed",
-      "duration": 4
-    },
-    {
-      "id": "69e1de0f5a1f45e003f5b909ab039783",
-      "name": "test_restart_argv_matches_sudoers_whitelist",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "224db9d91410979a6fc9b0c272488efa",
-      "name": "test_subscribe_pose_without_peer_id_is_noop_but_acks",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "cc8190805edd147f02b7eba49cbd4002",
-      "name": "test_delete_hf_token_ok",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "5cb5d4f88ee1b2bc0ec7109707c41e8f",
-      "name": "test_build_state_json_returns_none_on_build_error",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "76bee4a4e68a91447ba03c100ce4574e",
-      "name": "test_set_then_get_round_trips",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "8c84ca7992883b9f0a6363be5203be25",
-      "name": "test_cleanup_prunes_authorized_after_expiry",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "82136f795ebeeef26021a78fe6198d8c",
-      "name": "test_no_device_no_thread_no_reading",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "22cdff8713bed47f91aad6457c31b9e3",
-      "name": "test_named_local_daemon_is_validated",
-      "status": "passed",
-      "duration": 4297
-    },
-    {
-      "id": "7a0440e24e964f98e979f01a425028c2",
-      "name": "test_installed_version_within_supported_range",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "02acbfc0e2aefd9370db71986ed2eb0e",
-      "name": "test_close_disarms_an_armed_push_timer",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "86340050c20050ac4c35baf8d33ca4a8",
-      "name": "test_close_waits_for_inflight_read",
-      "status": "passed",
-      "duration": 1502
-    },
-    {
-      "id": "1849ef29e45328c159d4dccf1eed2521",
-      "name": "test_broadcast_delivers_to_connected_client",
-      "status": "passed",
-      "duration": 22
-    },
-    {
-      "id": "9773ad902ea5f161d9211548df354a68",
-      "name": "test_push_pose_skips_tick_when_provider_returns_none",
-      "status": "passed",
-      "duration": 2
-    },
-    {
-      "id": "8e82bb3f38834cee29723562ca32e247",
-      "name": "test_read_doa_starts_poller_and_serves_cache",
-      "status": "passed",
-      "duration": 6
-    },
-    {
-      "id": "8a2014be1cc5ee4158aac7666bacc2f2",
-      "name": "test_remote_acquired_handler_not_fired_on_refused_acquire",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "6836d3f51c98970c2132a4b6fd063b2b",
-      "name": "test_private_symbols_are_callable_or_class[huggingface_hub.utils._oauth_device-request_device_code]",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "a3d566e2000e99a7b460302e2c7a61b9",
-      "name": "test_poll_aborts_when_cancel_event_set",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "18bca6c1c20e35981d04b0fe0edc8472",
-      "name": "test_set_creates_parent_dirs",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "47c2ad93aa510a27c86b9c4adfdf3de9",
-      "name": "test_push_pose_skips_subscriber_without_open_channel",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "3042570abf40df4bfd9f636f82d6512c",
-      "name": "test_became_free_handler_not_fired_on_eviction",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "ee28686c1da4c53b67bc107fac19f9f7",
-      "name": "test_handoff_grace_reset_fires_when_no_successor_arrives",
-      "status": "passed",
-      "duration": 302
-    },
-    {
-      "id": "860fb652b9347fc05da6b7a7ca2789b9",
-      "name": "test_request_device_code_callable_with_no_args",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "78cddf7a4a0a6a04ddba3864997f4c67",
-      "name": "test_close_tolerates_a_half_built_server",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "62191c51b4917a78839c5a20f55e207c",
-      "name": "test_pose_channel_is_opened_once_per_peer",
-      "status": "passed",
-      "duration": 2
-    },
-    {
-      "id": "887f76e4e23632f77d8cc1fe0234404b",
-      "name": "test_cancel_during_debounce_skips_motion",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "1dff2658baee2b4d12ff85a241e17e37",
-      "name": "test_git_ref_grouping_shell_precedence",
-      "status": "passed",
-      "duration": 3
-    },
-    {
-      "id": "8b3658414471a47c035d1ef7b9fecbc7",
-      "name": "test_private_symbols_are_callable_or_class[huggingface_hub._login-_save_oauth_token]",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "fe4b0e8ca8ff05274aacac9d7f31021a",
-      "name": "test_no_evict_start_uses_atomic_app_manager_contract",
-      "status": "passed",
-      "duration": 34
-    },
-    {
-      "id": "952b19704e8badf429aa32f30aa77ffd",
-      "name": "test_wake_up_runs_when_enabled_but_off_pose",
-      "status": "passed",
-      "duration": 203
-    },
-    {
-      "id": "fb4867387c0e862d28d481b9e9350204",
-      "name": "test_state_dict_carries_no_duplicate_antenna_field",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "a2b567fe9f5e3ad4d159e7810cb03ee9",
-      "name": "test_consume_relay_pending_false_while_pending",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "0a3d4876cea419334d1d130d9f535a23",
-      "name": "test_broadcast_schedules_nothing_after_last_client_disconnects",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "80fb07529ab92f464757f3510a893750",
-      "name": "test_private_symbols_are_callable_or_class[huggingface_hub.errors-DeviceCodeError]",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "cb4a8b8518f182d83996ffb165d59544",
-      "name": "test_became_free_handler_fires_on_local_release",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "1b3a7da6babf73f44f165a2b2dcff8b5",
-      "name": "test_poll_device_token_accepts_device_info_and_on_pending",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "304b380fb9f74c30de7fa939fd5942fc",
-      "name": "test_remote_acquired_handler_exception_is_swallowed",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "4ddf3b4078f7610613de8d116cd5b906",
-      "name": "test_call_logger_wrapper_nonzero_raises",
-      "status": "passed",
-      "duration": 2
-    },
-    {
-      "id": "0951048f4466d6de119a84085ba30635",
-      "name": "test_private_symbols_are_callable_or_class[huggingface_hub.utils._oauth_device-poll_device_token]",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "0558d6388cb5ddc3489dff46a5ff1d50",
-      "name": "test_clearing_became_free_handler_disables_it",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "afe8eda6747fa695dd033e7fe7003eb4",
-      "name": "test_wake_up_stands_down_when_already_awake_at_init",
-      "status": "passed",
-      "duration": 102
-    },
-    {
-      "id": "ed8b2efce0c65518d4eab16212bdd333",
-      "name": "test_save_oauth_token_accepts_response_and_is_private",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "6f022f8faf95cd50e424ba7b62db675a",
-      "name": "test_poller_restarts_on_new_demand",
-      "status": "passed",
-      "duration": 53
-    },
-    {
-      "id": "d1ae8f67afc0b26bbfd3d0fd15035ea0",
-      "name": "test_set_rejects_empty_or_whitespace[]",
-      "status": "passed",
-      "duration": 1
-    },
-    {
-      "id": "09432636ec11d15542f0ba36d0ad5e25",
-      "name": "test_became_free_handler_sees_free_state",
-      "status": "passed",
-      "duration": 0
-    },
-    {
-      "id": "1de1a120a013f5809af9a8dc01b53bfb",
-      "name": "test_poll_success_persists_token_and_notifies_relay",
-      "status": "passed",
-      "duration": 2
-    }
+    "79dca00f00aa3d9fa245e7f03a4d5b50",
+    "9c179a9c1f1c3aad1310f3798ee5bed1",
+    "2cff345f027940f29713059ab7ceab4a",
+    "fa7d05fac070c4819b70b920618d51cc",
+    "193a1351b90b1b9ab3fe8735ba5270a8",
+    "9ed6c9a7a4ec85ac2cd6437b0b51fb1d",
+    "be6ec10ad9fe3879f1c5cedb99a5f09b",
+    "da5f85a9281ba5ccaea7d496cb49150d",
+    "acd200d9bddd274ae3e8a813e60d41e9",
+    "6551bd73f33f7e53dc18a2a3914bdb68",
+    "ce9bed9466c5ee33126b4035ffef6c44",
+    "e09958f2d6617e0a83fbeccda7272dd8",
+    "ccca860fb460e80c847159164e4c600c",
+    "19da4e17b7417cb730cf9f8d213136af",
+    "243fe87fbd821a8e34ba6a0369f523c8",
+    "5927581490de2a9dda11bea1c2455a8a",
+    "1021a95c97362762dc96c025e8a616ed",
+    "c64ef81600e36ab86f19bd2e1937d208",
+    "c6fb66e700bcb1075667168b89e4c3d8",
+    "285e0f1f57167f13ee5e2250190edd8e",
+    "e0b34791133a1a77653ef4e85fc90cd2",
+    "820b0c9fb6bd429b218ac10495c1252e",
+    "7e1a083959d6d7b00e2a513bcd29c7ee",
+    "ca7f1f9ea42efb10cb8e4f8162d37712",
+    "0b0088d27c85097aba0cf03bf54ea719",
+    "9dc284bfa62319dc32cc3651b74a94be",
+    "500f601f4291504bde799c3ace5ad442",
+    "fbe539274e986ad1c348348a87d6f571",
+    "7c1fdf4e0bfd4b4ef599a060680747b7",
+    "bcb4db9a2359f52a6fbe410ba28f77f8",
+    "0f30f7a9fe84edb5fe388a645e4bec1c",
+    "93c066fb1234cce43f44b6b82c06124c",
+    "e356db7f96a9cdb7868807776ff0bf24",
+    "7e436b32340593848d51d97485849c2a",
+    "bf66d6df788d909ae1100e3aba80d94b",
+    "4dbfd1d563e5efac340930f6f53ef31f",
+    "9ab8ee26d02c260288bb89eb5763b6c8",
+    "699a4502e74a2a627c5b5ef68e78b99b",
+    "fe9092044066f95bca2b4e5d8809bf55",
+    "d65db578ce6493466da4bb97d3ec22bb",
+    "64c3b6add148bdac2e2de2d0d1a1fec9",
+    "5fecaa19c6f71e497789ac99b60dc23b",
+    "9d87788a43bb15d85cb8b95e94caeb97",
+    "b3690e35570f758b48b175b5c6cd194a",
+    "136053390c943e7e400ebecec2637ba0",
+    "7c5faf5e9da031da33619d494871f5bc",
+    "14c44e20492d727b83eebcf9d663af21",
+    "e8444ca39bc14e2922ac4b19de213dfe",
+    "2221c4e335f072e49fa04cb14da4d236",
+    "07812fe7b05c84f0d771e0d4bdf2a39b",
+    "9fa19733c61d2d22f8f312f4d8c6b5fa",
+    "a4f0c91fae56726c3727f7378d094539",
+    "2aee199c2a4fb7fc34fc264a0793346a",
+    "21c15ed1be374facd08f3f4a6e016d5e",
+    "726bd049913a321edab739681ee21266",
+    "87778b73042e0c257f66a1cf8679ce0d",
+    "303043422b929201bd6a0cbb64fa9872",
+    "87b1d18355bd424b8d25b98c9764705a",
+    "3e7efef0daa3f121c7857479bdd30ed3",
+    "7fe98655e3b8d30eee7b3225f54954b8",
+    "41d5ce251c94b9fb54fc1b9659d7f2f8",
+    "a87a7052dba13799968134f1477c0736",
+    "125ffe1e7937e88de5f368bdf7d2d2fa",
+    "d034db515e8b350b0d9154d0683e298b",
+    "4f73b017c2e49dd17004b3826be48105",
+    "a5424e7e73a91e677ff02b2cde87f62f",
+    "0c78e0d1eb4cd459b9722d75eda697c2",
+    "eff7971a80eb1431c61a39085e54fa04",
+    "def1328fa5d5c0af4747d6b709465971"
   ],
   "flakyTests": [],
   "retryTests": [],
   "checks": [],
   "name": "Reachy Mini Tests",
-  "duration": 100185,
-  "createdAt": 1786313294631,
+  "duration": 102092,
+  "createdAt": 1786682259661,
   "plugin": "Awesome",
   "meta": {
-    "reportId": "d129f0c2-6d82-427b-83ec-1fed5f185fff",
+    "reportId": "e5221b8f-7946-4492-8882-1774e4d01873",
     "singleFile": false,
     "withTestResultsLinks": true
   },
   "pluginId": "awesome",
   "pullRequestHref": "",
-  "jobHref": "https://github.com/olaservo/reachy_mini/actions/runs/31338482695",
+  "jobHref": "https://github.com/olaservo/reachy_mini/actions/runs/31770236543",
   "href": "awesome/",
   "coverage": 53
 }

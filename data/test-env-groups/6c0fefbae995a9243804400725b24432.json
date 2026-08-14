@@ -1,1 +1,1 @@
-{"id":"6c0fefbae995a9243804400725b24432","fullName":"tests.unit_tests.test_hf_auth_device_code#test_cancel_signals_the_polling_thread","name":"test_cancel_signals_the_polling_thread","status":"passed","testResultsByEnv":{"default":"b42ccaac80c48ddac9e1c1f55fee3f44"}}
+{"id":"6c0fefbae995a9243804400725b24432","fullName":"tests.unit_tests.test_hf_auth_device_code#test_cancel_signals_the_polling_thread","name":"test_cancel_signals_the_polling_thread","status":"passed","testResultsByEnv":{"default":"9b2a96a6bf40d1b2455363293e3a1878"}}
