@@ -29,7 +29,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Optional
 
 import requests
 
@@ -61,11 +61,12 @@ class NfcClient:
         r.raise_for_status()
         return Tag(**r.json())
 
-    def status(self) -> dict:
+    def status(self) -> dict[str, Any]:
         """Return the reader status (connected, module_detected, last_line, ...)."""
         r = requests.get(f"{self.base}/api/nfc/status", timeout=self.timeout)
         r.raise_for_status()
-        return r.json()
+        data: dict[str, Any] = r.json()
+        return data
 
     def write_tag(self, text: str) -> bool:
         """Write ``text`` (1-12 ASCII chars) onto the next tag; True on success.
@@ -75,7 +76,7 @@ class NfcClient:
         """
         return bool(self.write_tag_result(text).get("success"))
 
-    def write_tag_result(self, text: str) -> dict:
+    def write_tag_result(self, text: str) -> dict[str, Any]:
         """Like :meth:`write_tag` but returns the full ``{success, error}`` dict."""
         # The daemon blocks up to ~8 s (tag wait + handshake), so allow more time.
         r = requests.post(
@@ -86,7 +87,8 @@ class NfcClient:
         if r.status_code == 503:
             return {"success": False, "error": r.json().get("detail", "unavailable")}
         r.raise_for_status()
-        return r.json()
+        result: dict[str, Any] = r.json()
+        return result
 
     def wait_for_tag(self, timeout: float = 30.0, poll: float = 0.3) -> Optional[Tag]:
         """Poll until a tag is present, then return it (or None on timeout)."""
@@ -104,9 +106,11 @@ def _demo() -> None:
     nfc = NfcClient()
 
     status = nfc.status()
-    print(f"Lecteur : connecté={status['connected']} "
-          f"module={status['module_detected']} "
-          f"(dernière ligne: {status['last_line']!r})")
+    print(
+        f"Lecteur : connecté={status['connected']} "
+        f"module={status['module_detected']} "
+        f"(dernière ligne: {status['last_line']!r})"
+    )
     if not status["connected"]:
         print("⚠️  Lecteur non connecté — branche l'Arduino et relance le daemon.")
         return

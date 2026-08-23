@@ -333,9 +333,7 @@ def create_app(args: Args, health_check_event: asyncio.Event | None = None) -> F
     # Give the daemon a handle back to the app manager so `Daemon.start` can
     # wire the JSON-RPC app relay (apps.* + conversation.* over the DataChannel).
     app.state.daemon.app_manager = app.state.app_manager
-    app.state.nfc_reader = (
-        NfcReader(port=args.nfc_port) if args.nfc_enabled else None
-    )
+    app.state.nfc_reader = NfcReader(port=args.nfc_port) if args.nfc_enabled else None
 
     router = APIRouter(prefix="/api")
     router.include_router(apps.router)

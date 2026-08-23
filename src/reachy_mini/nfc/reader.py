@@ -31,6 +31,7 @@ from __future__ import annotations
 import logging
 import threading
 from datetime import datetime, timezone
+from typing import Any
 
 import serial
 import serial.tools.list_ports
@@ -88,7 +89,7 @@ class NfcWriteResult(BaseModel):
 def find_nfc_ports(
     vids: tuple[int, ...] = DEFAULT_NFC_VIDS,
     exclude_pids: tuple[int, ...] = (REACHY_MOTOR_PID,),
-    comports: list | None = None,
+    comports: list[Any] | None = None,
 ) -> list[str]:
     """Return candidate serial ports for the NFC reader.
 
@@ -258,9 +259,7 @@ class NfcReader:
             # Phase 2: wait for the actual write outcome.
             if not self._write_done.wait(timeout):
                 return NfcWriteResult(success=False, error="TIMEOUT")
-            return self._write_result or NfcWriteResult(
-                success=False, error="UNKNOWN"
-            )
+            return self._write_result or NfcWriteResult(success=False, error="UNKNOWN")
 
     # -- background loop ---------------------------------------------------
 

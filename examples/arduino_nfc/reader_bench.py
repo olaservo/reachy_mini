@@ -16,6 +16,7 @@ from reachy_mini.nfc import NfcReader, find_nfc_ports
 
 
 def main() -> None:
+    """Run the bench: start the reader, print snapshots, accept write commands."""
     port = sys.argv[1] if len(sys.argv) > 1 else "auto"
     print(f"Candidate ports: {find_nfc_ports() or 'none'}; using: {port}")
 
