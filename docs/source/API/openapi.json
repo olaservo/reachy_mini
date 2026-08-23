@@ -2221,6 +2221,83 @@
         }
       }
     },
+    "/api/nfc/tag": {
+      "get": {
+        "summary": "Get Tag",
+        "description": "Get the tag currently on the reader (presence, UID and written content).",
+        "operationId": "get_tag_api_nfc_tag_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfcTag"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/nfc/status": {
+      "get": {
+        "summary": "Get Status",
+        "description": "Get the NFC reader hardware status (connection, module detection).",
+        "operationId": "get_status_api_nfc_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfcStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/nfc/write": {
+      "post": {
+        "summary": "Write Tag",
+        "description": "Write text (1-12 ASCII chars) onto the next tag presented to the reader.\n\nBlocks until the firmware reports the outcome (or a timeout). Returns the\nresult rather than raising, except when the reader is unavailable.",
+        "operationId": "write_tag_api_nfc_write_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NfcWriteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NfcWriteResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/state/present_head_pose": {
       "get": {
         "summary": "Get Head Pose",
@@ -3651,6 +3728,169 @@
         ],
         "title": "MujocoBackendStatus",
         "description": "Status of the Mujoco backend."
+      },
+      "NfcStatus": {
+        "properties": {
+          "connected": {
+            "type": "boolean",
+            "title": "Connected"
+          },
+          "module_detected": {
+            "type": "boolean",
+            "title": "Module Detected"
+          },
+          "port": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Port"
+          },
+          "last_line": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Line"
+          },
+          "last_line_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Line At"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "connected",
+          "module_detected",
+          "port",
+          "last_line",
+          "last_line_at",
+          "error"
+        ],
+        "title": "NfcStatus",
+        "description": "Snapshot of the NFC reader hardware status."
+      },
+      "NfcTag": {
+        "properties": {
+          "present": {
+            "type": "boolean",
+            "title": "Present"
+          },
+          "uid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uid"
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
+          },
+          "blank": {
+            "type": "boolean",
+            "title": "Blank"
+          },
+          "last_read_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Read At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "present",
+          "uid",
+          "content",
+          "blank",
+          "last_read_at"
+        ],
+        "title": "NfcTag",
+        "description": "Snapshot of the tag currently on the reader."
+      },
+      "NfcWriteRequest": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "NfcWriteRequest",
+        "description": "Request body to write text onto the next presented tag."
+      },
+      "NfcWriteResult": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "success"
+        ],
+        "title": "NfcWriteResult",
+        "description": "Result of a write attempt."
       },
       "PlaySoundRequest": {
         "properties": {
