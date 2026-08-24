@@ -1,1 +1,1 @@
-{"id":"0abb9f8be82e5efc33156c91ee30f3a9","fullName":"tests.unit_tests.test_no_token_in_urls#test_no_token_in_urls","name":"test_no_token_in_urls[src/reachy_mini/media/central_signaling_relay.py]","status":"passed","testResultsByEnv":{"default":"5cd569f815c26988f73ac71320ca33d9"}}
+{"id":"0abb9f8be82e5efc33156c91ee30f3a9","fullName":"tests.unit_tests.test_no_token_in_urls#test_no_token_in_urls","name":"test_no_token_in_urls[ts/lib/reachy-mini.ts]","status":"passed","testResultsByEnv":{"default":"2de44074dcb68a98f1d1f4e0bac48453"}}
