@@ -1,1 +1,1 @@
-{"id":"ae172d414bd04df41121c6027a2f940b","fullName":"tests.unit_tests.test_device_detection.TestParser#test_macos_device_count","name":"test_macos_device_count","status":"passed","testResultsByEnv":{"default":"7c1bd71d9eff12ab6a376c10f9bdb4d0"}}
+{"id":"ae172d414bd04df41121c6027a2f940b","fullName":"tests.unit_tests.test_device_detection.TestParser#test_macos_device_count","name":"test_macos_device_count","status":"passed","testResultsByEnv":{"default":"256f9c02ebd78d72de198a49c3d42d10"}}
