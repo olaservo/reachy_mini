@@ -1,49 +1,29 @@
 {
   "stats": {
-    "total": 919,
-    "passed": 904,
-    "new": 21,
-    "skipped": 15
+    "total": 920,
+    "passed": 905,
+    "skipped": 15,
+    "new": 1
   },
   "status": "passed",
   "newTests": [
-    "5779d0cab679993ee18d2eb67cff59ca",
-    "811c50a9dd5d7ba7fb4ea7e5b2d0bad5",
-    "dcfbdd42814141c064eb2f1f855eb2cc",
-    "13c0f0f3354bb3ea6a5ce414296516fd",
-    "55c1a687781025f3f33747274c7864b1",
-    "1612feac1e3a54ab6213aca72deac424",
-    "8e929b9e0af91ee9fb8634cac87a9fb7",
-    "e0c7a853578aa9a9e4584e4edbf409bf",
-    "b7bfb0a73331cabc1d94ebaf35ed6292",
-    "722937640519c5d8735d95b2b3276dfb",
-    "768a9ac129e181a0b4c1cb21d1051950",
-    "426e4244c00b4273bd7cc23f9d7fc20d",
-    "2a7227d5c5cf54dfb1ce76df258e4e2b",
-    "e1f5de22519cf73ad3cd12c883bf5924",
-    "d7255fd2203a9c3e23fd30d155154620",
-    "1f4315c94d9f5424809770b9723eed12",
-    "fbf33ce87409e0e666029206c726f5b4",
-    "4f1af3d0095758547db6bbc0555aa338",
-    "585f4b70aebc4e00600f369a5966268a",
-    "1bf0307541f6955ada147949dd3dbce3",
-    "5a8a7cf31a3755fa68a3e2aa38f82004"
+    "3ec01c1f27b2bc3ac4b1f7bf1786546b"
   ],
   "flakyTests": [],
   "retryTests": [],
   "checks": [],
   "name": "Reachy Mini Tests",
-  "duration": 102800,
-  "createdAt": 1787861935834,
+  "duration": 100966,
+  "createdAt": 1788493467185,
   "plugin": "Awesome",
   "meta": {
-    "reportId": "cfc18989-4674-4862-8d4c-dcb951afefa0",
+    "reportId": "07aab628-6936-46ad-97ba-5828a4794f14",
     "singleFile": false,
     "withTestResultsLinks": true
   },
   "pluginId": "awesome",
   "pullRequestHref": "",
-  "jobHref": "https://github.com/olaservo/reachy_mini/actions/runs/33112385590",
+  "jobHref": "https://github.com/olaservo/reachy_mini/actions/runs/33834113095",
   "href": "awesome/",
   "coverage": 54
 }
