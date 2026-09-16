@@ -1,0 +1,1 @@
+{"id":"e5a6271db1e7d5f5008dcf7c0195cdcc","fullName":"tests.unit_tests.test_network#test_rejects_unsafe_urls_without_echoing_credentials","name":"test_rejects_unsafe_urls_without_echoing_credentials[ftp://central.example-must be an HTTP]","status":"passed","testResultsByEnv":{"default":"ed8350e32ae77ba78231dec04ce6cd44"}}
