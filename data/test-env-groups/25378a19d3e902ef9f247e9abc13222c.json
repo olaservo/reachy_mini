@@ -1,1 +1,1 @@
-{"id":"25378a19d3e902ef9f247e9abc13222c","fullName":"tests.unit_tests.test_daemon#test_daemon_early_stop","name":"test_daemon_early_stop","status":"passed","testResultsByEnv":{"default":"42efc7423948b71210e30897bd8bd2a8"}}
+{"id":"25378a19d3e902ef9f247e9abc13222c","fullName":"tests.unit_tests.test_daemon#test_daemon_early_stop","name":"test_daemon_early_stop","status":"passed","testResultsByEnv":{"default":"bd1d72d0e3aed2f035ed667ba303ef73"}}
