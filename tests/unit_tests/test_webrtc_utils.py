@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pytest
 
+from reachy_mini.apps.sources import hf_auth
 from reachy_mini.daemon import startup_app_config
 from reachy_mini.media import webrtc_utils
 
@@ -164,9 +165,7 @@ def test_turn_credentials_refresh_once_populates_cache(monkeypatch) -> None:
     )
 
     class _Resp:
-        @staticmethod
-        def raise_for_status() -> None:
-            pass
+        status_code = 200
 
         @staticmethod
         def json() -> dict:
@@ -190,13 +189,27 @@ def test_turn_credentials_refresh_once_populates_cache(monkeypatch) -> None:
         return _Resp()
 
     monkeypatch.setattr(webrtc_utils, "requests", type("R", (), {"get": _fake_get}))
-    monkeypatch.setattr("huggingface_hub.get_token", lambda: "hf_tok", raising=False)
+    monkeypatch.setattr(hf_auth, "get_hf_token", lambda: "hf_tok")
 
     assert creds._refresh_once() == 300.0  # half the 600 s TTL
     assert creds.turn_uris() == ["turn://u:p@relay.example:3478"]
     assert seen["url"] == "https://turn.example/credentials"
     assert seen["headers"]["Authorization"] == "Bearer hf_tok"
     assert seen["params"] == {"ttl": 600}
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "http://turn.example/credentials",
+        "https://secret@turn.example/credentials",
+        "https://turn.example/credentials?target=elsewhere",
+    ],
+)
+def test_turn_credentials_reject_unsafe_bearer_destinations(url: str) -> None:
+    """TURN never sends the daemon bearer to an unsafe configured endpoint."""
+    with pytest.raises(ValueError, match="REACHY_TURN_URL"):
+        webrtc_utils.TurnCredentials(url=url)
 
 
 def test_turn_credentials_network_failure_retries_soon(monkeypatch) -> None:
@@ -208,7 +221,7 @@ def test_turn_credentials_network_failure_retries_soon(monkeypatch) -> None:
         raise RuntimeError("network down")
 
     monkeypatch.setattr(webrtc_utils, "requests", type("R", (), {"get": _boom}))
-    monkeypatch.setattr("huggingface_hub.get_token", lambda: "hf_tok", raising=False)
+    monkeypatch.setattr(hf_auth, "get_hf_token", lambda: "hf_tok")
 
     assert creds._refresh_once() == webrtc_utils._TURN_RETRY_AFTER_FAILURE_S
     assert creds.turn_uris() == ["turn://u:p@relay.example:3478"]
@@ -222,7 +235,7 @@ def test_turn_credentials_without_token_does_not_fetch(monkeypatch) -> None:
         raise AssertionError("must not request TURN creds without a token")
 
     monkeypatch.setattr(webrtc_utils, "requests", type("R", (), {"get": _unexpected}))
-    monkeypatch.setattr("huggingface_hub.get_token", lambda: None, raising=False)
+    monkeypatch.setattr(hf_auth, "get_hf_token", lambda: None)
 
     assert creds._refresh_once() > webrtc_utils._TURN_RETRY_AFTER_FAILURE_S
     assert creds.turn_uris() == []
@@ -240,7 +253,7 @@ def test_turn_credentials_without_token_logs_once(monkeypatch, caplog) -> None:
         "requests",
         type("R", (), {"get": lambda *a, **k: pytest.fail("must not fetch")}),
     )
-    monkeypatch.setattr("huggingface_hub.get_token", lambda: None, raising=False)
+    monkeypatch.setattr(hf_auth, "get_hf_token", lambda: None)
 
     with caplog.at_level("INFO", logger=webrtc_utils.__name__):
         delays = [creds._refresh_once() for _ in range(5)]

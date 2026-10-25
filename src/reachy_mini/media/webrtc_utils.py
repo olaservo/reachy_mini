@@ -5,11 +5,14 @@ import json
 import logging
 import os
 import threading
+import uuid
 from typing import Any, Dict, List, Optional
 from urllib.parse import quote
 
 import requests
 from websockets.sync.client import connect
+
+from reachy_mini.utils.network import validate_secure_http_url
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +30,11 @@ logger = logging.getLogger(__name__)
 # STUN. So there is no central-server change and no consumer-side
 # credential to manage (which matters because aiortc's STUN client works
 # while its TURN client does not).
+#
+# turn.fastrtc.org (this default until 2026-09) has dead DNS since June 2026;
+# address the fastrtc/turn-service Space directly.
 TURN_CREDENTIALS_URL = os.getenv(
-    "REACHY_TURN_URL", "https://turn.fastrtc.org/credentials"
+    "REACHY_TURN_URL", "https://fastrtc-turn-service.hf.space/credentials"
 )
 TURN_TTL_SECONDS = int(os.getenv("REACHY_TURN_TTL", "600"))
 
@@ -109,7 +115,7 @@ class TurnCredentials:
                 refresh period is half this.
 
         """
-        self._url = url
+        self._url = validate_secure_http_url(url, "REACHY_TURN_URL")
         self._ttl = ttl
         # Written only by the refresher thread, read by the GStreamer
         # thread. Rebound as a whole list, never mutated in place, so a
@@ -151,9 +157,10 @@ class TurnCredentials:
         """
         period = self._ttl * _TURN_REFRESH_RATIO
         try:
-            from huggingface_hub import get_token
+            # Lazy: the SDK imports this module and must not pull in aiohttp.
+            from reachy_mini.apps.sources.hf_auth import get_hf_token
 
-            token = get_token()
+            token = get_hf_token()
             if not token:
                 # Steady state on a robot nobody has logged in; say so once.
                 if not self._warned_no_token:
@@ -168,8 +175,18 @@ class TurnCredentials:
                 headers={"Authorization": f"Bearer {token}"},
                 params={"ttl": self._ttl},
                 timeout=_TURN_HTTP_TIMEOUT_S,
+                allow_redirects=False,
             )
-            resp.raise_for_status()
+            if resp.status_code != 200:
+                logger.warning(
+                    "TURN proxy returned HTTP %s; expected 200", resp.status_code
+                )
+                # A redirect needs a configuration fix, not a fast retry.
+                return (
+                    period
+                    if 300 <= resp.status_code < 400
+                    else _TURN_RETRY_AFTER_FAILURE_S
+                )
             uris = ice_servers_to_turn_uris(resp.json().get("iceServers") or [])
         except Exception as e:  # noqa: BLE001 - a relay is best-effort
             logger.warning("Failed to fetch TURN credentials: %r", e)
@@ -182,6 +199,43 @@ class TurnCredentials:
         self._uris = uris
         logger.info("Refreshed %d TURN server(s): %s", len(uris), _turn_hosts(uris))
         return period
+
+
+# The data channel drops any message over 64 KiB without an error the
+# sender can see (measured on a Wireless robot: 63,996 bytes arrive,
+# 81,569 do not). Messages over the threshold are split, with margin.
+DATA_CHANNEL_MAX_MESSAGE_BYTES = 60_000
+# Characters of the original message per chunk. The chunk envelope is
+# ASCII-escaped JSON, where one character costs at most 12 bytes (an astral
+# code point as a surrogate pair), so a chunk stays under 49,152 + envelope.
+DATA_CHANNEL_CHUNK_CHARS = 4096
+
+
+def split_for_data_channel(message: str) -> List[str]:
+    """Return ``message`` as data channel frames, split when too large.
+
+    A message that fits is returned as is. A larger one becomes ordered
+    ``message_chunk`` frames; the client joins their ``data`` fields back
+    into the original text. The control channel is ordered, so no
+    reordering is handled on either side.
+    """
+    if len(message.encode("utf-8")) <= DATA_CHANNEL_MAX_MESSAGE_BYTES:
+        return [message]
+    message_id = uuid.uuid4().hex
+    size = DATA_CHANNEL_CHUNK_CHARS
+    count = -(-len(message) // size)
+    return [
+        json.dumps(
+            {
+                "type": "message_chunk",
+                "id": message_id,
+                "index": index,
+                "count": count,
+                "data": message[index * size : (index + 1) * size],
+            }
+        )
+        for index in range(count)
+    ]
 
 
 def get_producer_list(host: str, port: int) -> Dict[str, Dict[str, str]]:

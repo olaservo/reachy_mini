@@ -59,7 +59,7 @@ from reachy_mini.media.device_detection import (
     get_video_device,
 )
 from reachy_mini.media.gstreamer_utils import handle_default_bus_message
-from reachy_mini.media.webrtc_utils import TurnCredentials
+from reachy_mini.media.webrtc_utils import TurnCredentials, split_for_data_channel
 from reachy_mini.motion.head_wobbler import HeadWobbler, SpeechOffsets
 from reachy_mini.utils.constants import ASSETS_ROOT_PATH
 
@@ -300,9 +300,12 @@ class GstMediaServer:
         # Refreshed off-thread so `_consumer_added` can read credentials
         # without doing I/O on the thread that builds the SDP offer.
         # None when relay candidates are disabled.
-        self._turn: Optional[TurnCredentials] = (
-            TurnCredentials() if enable_turn else None
-        )
+        self._turn: TurnCredentials | None = None
+        if enable_turn:
+            try:
+                self._turn = TurnCredentials()
+            except ValueError as error:
+                self._logger.warning("TURN disabled: %s", error)
         if self._turn is not None:
             self._turn.start()
 
@@ -855,11 +858,23 @@ class GstMediaServer:
         pipeline.add(queue_webrtc)
         tee.link(queue_webrtc)
 
-        if is_rpi:
-            # RPi: use hardware H264 encoder (webrtcsink doesn't have v4l2h264enc)
+        if is_rpi and not self._webrtcsink_handles_rpi_encoder():
+            # Old OS image: webrtcsink can't drive v4l2h264enc, encode explicitly
             self._build_rpi_encoder_branch(queue_webrtc, pipeline, webrtcsink)
         else:
-            # All other platforms: feed raw video, let webrtcsink handle encoding
+            if is_rpi:
+                # Force H264 so webrtcsink picks v4l2h264enc, not software vp8/vp9
+                webrtcsink.set_property(
+                    "video-caps", Gst.Caps.from_string("video/x-h264")
+                )
+                self._logger.info("webrtcsink drives v4l2h264enc itself")
+                if Gst.ElementFactory.find("rtpgccbwe") is None:
+                    # webrtcsink needs this element (gstrsrtp plugin) to adapt
+                    # the encoder bitrate to network conditions
+                    self._logger.warning(
+                        "rtpgccbwe not found: webrtcsink congestion control disabled"
+                    )
+            # Feed raw video, let webrtcsink handle encoding
             queue_webrtc.link(webrtcsink)
 
     def _build_sim_source(self) -> list[Gst.Element]:
@@ -1109,6 +1124,18 @@ class GstMediaServer:
             videoconvert_ipc.link(capsfilter_ipc)
             capsfilter_ipc.link(ipc_sink)
 
+    @staticmethod
+    def _webrtcsink_handles_rpi_encoder() -> bool:
+        """Check whether webrtcsink can drive the RPi hardware encoder itself.
+
+        Recent OS images (reachy-mini-os#65) ship a patched v4l2h264enc that
+        exposes a runtime-changeable `bitrate` property, which webrtcsink's
+        congestion control drives. Old images lack it, so we must build the
+        encoder branch explicitly.
+        """
+        enc = Gst.ElementFactory.make("v4l2h264enc")
+        return enc is not None and enc.find_property("bitrate") is not None
+
     def _build_rpi_encoder_branch(
         self,
         queue_webrtc: Gst.Element,
@@ -1117,7 +1144,8 @@ class GstMediaServer:
     ) -> None:
         """Build the RPi hardware H264 encoder branch.
 
-        webrtcsink does not have v4l2h264enc, so we encode explicitly on RPi.
+        Fallback for old OS images whose webrtcsink can't drive v4l2h264enc:
+        encode explicitly and feed H264 to webrtcsink.
         """
         v4l2h264enc = Gst.ElementFactory.make("v4l2h264enc")
         extra_controls_structure = Gst.Structure.new_empty("extra-controls")
@@ -1846,15 +1874,21 @@ class GstMediaServer:
             peer_id: If specified, send only to this peer. Otherwise broadcast to all.
 
         """
+        # A message over the channel's limit would be dropped silently;
+        # large ones go out as ordered chunks the client reassembles.
+        frames = split_for_data_channel(message)
         if peer_id:
-            if peer_id in self._data_channels:
-                self._data_channels[peer_id].emit("send-string", message)
-            else:
+            channel = self._data_channels.get(peer_id)
+            if channel is None:
                 self._logger.warning(f"No data channel for peer {peer_id}")
+                return
+            channels = [channel]
         else:
             # Broadcast to all connected peers
-            for channel in self._data_channels.values():
-                channel.emit("send-string", message)
+            channels = list(self._data_channels.values())
+        for channel in channels:
+            for frame in frames:
+                channel.emit("send-string", frame)
 
     def _setup_data_channel(self, peer_id: str, webrtcbin: Gst.Element) -> None:
         self._logger.debug(f"Setting up data channel for peer {peer_id}")
