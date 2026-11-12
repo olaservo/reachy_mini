@@ -30,7 +30,7 @@ import os
 import platform
 import time
 from dataclasses import dataclass, field
-from threading import Lock, Thread
+from threading import Lock, RLock, Thread
 from typing import Any, Callable, Dict, Optional
 
 import gi
@@ -98,6 +98,20 @@ SESSION_FAILED_REASON_PC_FAILED = "peer_connection_failed"
 # Cap the local IPC feed below the capture rate; it also paces every client, face tracker included.
 IPC_FPS = 10
 
+# Reopening the Windows mic after Windows invalidated it (see
+# `_on_mic_failure`). Retries back off up to the cap while failures keep
+# coming, and start again from the base delay after a quiet spell.
+MIC_REOPEN_DELAY_S = 1.0
+MIC_REOPEN_MAX_DELAY_S = 30.0
+MIC_REOPEN_RESET_S = 60.0
+
+# Restarting the WebRTC pipeline after an error (see
+# `_schedule_pipeline_restart`): at most PIPELINE_RESTART_LIMIT restarts in
+# any PIPELINE_RESTART_WINDOW_S, so a permanently broken device can't loop.
+PIPELINE_RESTART_DELAY_S = 1
+PIPELINE_RESTART_LIMIT = 3
+PIPELINE_RESTART_WINDOW_S = 60.0
+
 
 @dataclass
 class _PeerWebRTCState:
@@ -148,6 +162,14 @@ def _session_id_of(webrtcbin: Gst.Element) -> Optional[str]:
     ):
         return name[len(_WEBRTCBIN_NAME_PREFIX) :]
     return None
+
+
+def _is_wasapi2src(obj: Optional[GObject.Object]) -> bool:
+    """Whether a bus message source is the Windows mic (``wasapi2src``)."""
+    if not isinstance(obj, Gst.Element):
+        return False
+    factory = obj.get_factory()
+    return factory is not None and factory.get_name() == "wasapi2src"
 
 
 _gobject_ref: Optional[Callable[[Any], int]] = None
@@ -323,6 +345,9 @@ class GstMediaServer:
         # `_push_pose`). Kept separate from `_data_channels` so a stale pose
         # frame is never head-of-line-blocking a reliable control message.
         self._pose_channels: dict[str, Gst.Element] = {}  # peer_id -> channel
+        # peer_id -> the webrtcbin its pose channel was opened on, so a
+        # reconnect's old session can't drop the new session's pose stream.
+        self._pose_channel_bins: dict[str, Gst.Element] = {}
         # Each peer's `webrtcbin`, kept so the pose channel can be opened
         # lazily on `subscribe_pose` rather than eagerly for every peer.
         self._peer_webrtcbins: dict[str, Gst.Element] = {}  # peer_id -> bin
@@ -330,6 +355,9 @@ class GstMediaServer:
         # push timer only exists while this set is non-empty, so an idle
         # session (no 3D mirror on screen) costs nothing - not even a wakeup.
         self._pose_subscribers: set[str] = set()
+        # peer_id -> the webrtcbin live when it subscribed: a reconnect's old
+        # session must not drop a subscription the new one already made.
+        self._pose_subscribed_on: dict[str, Optional[Gst.Element]] = {}
         # Callback returning the JSON pose frame to push (set by the backend
         # via `set_pose_provider`), and the GLib source id of the push timer.
         self._pose_provider: Optional[Callable[[], Optional[str]]] = None
@@ -380,6 +408,18 @@ class GstMediaServer:
         # reused across per-peer playback pipelines (see _on_consumer_pad_added).
         self._aec_enabled = False
         self._webrtcechoprobe: Optional[Gst.Element] = None
+        # Pending reopen of the Windows mic, see `_on_mic_failure`.
+        self._mic_reopen_source_id: Optional[int] = None
+        self._mic_reopen_delay_s = MIC_REOPEN_DELAY_S
+        self._mic_last_failure = 0.0
+        # Whether `start()` has run without a matching `stop()`. Only a
+        # running pipeline is restarted after an error.
+        self._pipeline_running = False
+        # Serializes `start()` / `stop()`: the daemon calls them from its own
+        # threads, `_restart_pipeline` from the GLib main loop.
+        self._pipeline_lock = RLock()
+        self._pipeline_restart_source_id: Optional[int] = None
+        self._pipeline_restart_times: list[float] = []
 
         if enable_turn is None:
             # Deferred like the speaker-EQ lookup in audio_utils, so this
@@ -401,6 +441,7 @@ class GstMediaServer:
             self._turn.start()
 
         self._build_pipeline()
+        self._pipeline_needs_rebuild = False
 
     def _build_pipeline(self) -> None:
         """Build (or rebuild) the GStreamer pipeline from scratch."""
@@ -650,16 +691,30 @@ class GstMediaServer:
         self._logger.info(f"consumer removed: {peer_id} (session {session_id})")
         if session_id is not None:
             self._forget_session_liveness(session_id)
-        self._cleanup_incoming_audio(peer_id)
-        self._drop_pose_peer(peer_id)
-        self._peer_webrtcbins.pop(peer_id, None)
+        # A reconnect's new session may already own this peer id: an old
+        # session going away only tears down what it owned itself.
+        stale = self._peer_webrtcbins.get(peer_id) not in (None, webrtcbin)
+        self._cleanup_incoming_audio(peer_id, webrtcbin if stale else None)
+        if not stale:
+            self._drop_pose_peer(peer_id)
+        else:
+            if self._pose_channel_bins.get(peer_id) is webrtcbin:
+                self._pose_channels.pop(peer_id, None)
+                self._pose_channel_bins.pop(peer_id, None)
+            # The new session may have subscribed before its channel opened.
+            with self._pose_lock:
+                old_subscription = self._pose_subscribed_on.get(peer_id) is webrtcbin
+            if old_subscription:
+                self._drop_pose_subscription(peer_id)
+        if not stale:
+            self._peer_webrtcbins.pop(peer_id, None)
         # `on-close` may never fire for a peer that vanished. Only this
         # session's flag: another session of the same peer may be live.
         self._open_data_channels.discard(session_id or peer_id)
         # Cancel any outstanding watchdog for this session; the consumer
         # is gone so there's nothing left to police.
         self._teardown_negotiation_watchdog(session_id or peer_id)
-        if self._on_peer_disconnect is not None:
+        if self._on_peer_disconnect is not None and not stale:
             try:
                 self._on_peer_disconnect(peer_id)
             except Exception as e:
@@ -700,6 +755,9 @@ class GstMediaServer:
         if media != "audio":
             return
 
+        # A reconnect's new session replaces the old one's playback: stop it
+        # first, or its pipeline and pad probe keep running, orphaned.
+        self._cleanup_incoming_audio(peer_id)
         self._logger.info(f"Setting up incoming audio playback for peer {peer_id}")
 
         # Build playback pipeline element-by-element
@@ -825,6 +883,7 @@ class GstMediaServer:
             "playback_pipeline": self._pipeline_playback,
             "probe_id": probe_id,
             "pad": pad,
+            "webrtcbin": webrtcbin,  # identity only: which session owns it
         }
         self._logger.info(f"Audio playback pipeline started for peer {peer_id}")
 
@@ -841,11 +900,20 @@ class GstMediaServer:
             return False
         return True
 
-    def _cleanup_incoming_audio(self, peer_id: str) -> None:
-        """Remove the incoming-audio pad probe and playback pipeline for a peer."""
-        info = self._incoming_audio.pop(peer_id, None)
-        if info is None:
+    def _cleanup_incoming_audio(
+        self, peer_id: str, webrtcbin: Optional[Gst.Element] = None
+    ) -> None:
+        """Remove the incoming-audio pad probe and playback pipeline for a peer.
+
+        With *webrtcbin*, only if that session owns it: a reconnect's new
+        session may already play its audio under the same peer id.
+        """
+        info = self._incoming_audio.get(peer_id)
+        if info is None or (
+            webrtcbin is not None and info.get("webrtcbin") is not webrtcbin
+        ):
             return
+        del self._incoming_audio[peer_id]
 
         pad = info.get("pad")
         probe_id = info.get("probe_id")
@@ -1467,6 +1535,11 @@ class GstMediaServer:
             if platform.system() == "Windows":
                 audiosrc = Gst.ElementFactory.make("wasapi2src")
                 audiosrc.set_property("device", id_audio_card)
+                # When Windows invalidates the endpoint, post a warning and
+                # feed silence instead of an error that stops the whole
+                # pipeline, video included. `_on_mic_failure` reopens it.
+                if audiosrc.find_property("continue-on-error") is not None:
+                    audiosrc.set_property("continue-on-error", True)
                 self._logger.info(f"Using WASAPI device {id_audio_card} for capture.")
             elif platform.system() == "Darwin":
                 audiosrc = Gst.ElementFactory.make("osxaudiosrc")
@@ -1490,24 +1563,133 @@ class GstMediaServer:
     def _on_bus_message(
         self, bus: Gst.Bus, msg: Gst.Message, pipeline: Gst.Pipeline
     ) -> bool:
-        return handle_default_bus_message(self._logger, msg, pipeline)
+        if msg.type == Gst.MessageType.WARNING and _is_wasapi2src(msg.src):
+            err, _ = msg.parse_warning()
+            # Device failures only; e.g. an overrun ("Can't record audio fast
+            # enough", a CORE warning) is no reason to reopen the mic.
+            if err.domain == GLib.quark_to_string(Gst.ResourceError.quark()):
+                self._on_mic_failure(msg.src, err.message)
+                return True
+        keep_watch = handle_default_bus_message(self._logger, msg, pipeline)
+        if msg.type == Gst.MessageType.ERROR and pipeline is self._pipeline_sender:
+            self._schedule_pipeline_restart()
+        return keep_watch
+
+    def _schedule_pipeline_restart(self) -> None:
+        """Rebuild the pipeline after an error instead of leaving it dead.
+
+        An error stops the whole pipeline: WebRTC clients still connect but
+        get no media until something restarts it. Restart it like
+        `stop()` / `start()` do, so clients reconnect, at most
+        ``PIPELINE_RESTART_LIMIT`` times per ``PIPELINE_RESTART_WINDOW_S``.
+        """
+        if not self._pipeline_running or self._pipeline_restart_source_id is not None:
+            return
+
+        now = time.monotonic()
+        self._pipeline_restart_times = [
+            t
+            for t in self._pipeline_restart_times
+            if now - t < PIPELINE_RESTART_WINDOW_S
+        ]
+        if len(self._pipeline_restart_times) >= PIPELINE_RESTART_LIMIT:
+            self._logger.error(
+                f"Media pipeline failed {PIPELINE_RESTART_LIMIT} times within "
+                f"{PIPELINE_RESTART_WINDOW_S:g}s, not restarting it again"
+            )
+            return
+
+        self._pipeline_restart_times.append(now)
+        self._logger.warning(
+            f"Restarting the media pipeline in {PIPELINE_RESTART_DELAY_S}s after an error"
+        )
+        self._pipeline_restart_source_id = GLib.timeout_add_seconds(
+            PIPELINE_RESTART_DELAY_S, self._restart_pipeline
+        )
+
+    def _restart_pipeline(self) -> bool:
+        # Don't block the main loop behind a `stop()` / `start()` running on
+        # another thread: that call decides the pipeline state, and a
+        # `stop()` already cancels this restart.
+        if not self._pipeline_lock.acquire(blocking=False):
+            return False
+        try:
+            self._pipeline_restart_source_id = None
+            # Re-checked under the lock: the media may have been released
+            # since the restart was scheduled.
+            if self._pipeline_running:
+                self.stop()
+                self.start()
+        except Exception:
+            self._logger.exception("Media pipeline restart failed, media stays stopped")
+        finally:
+            self._pipeline_lock.release()
+        return False
+
+    def _on_mic_failure(self, audiosrc: Gst.Element, reason: str) -> None:
+        """Schedule a reopen of the Windows mic after a device failure.
+
+        With ``continue-on-error``, ``wasapi2src`` feeds silence once Windows
+        invalidates its endpoint, and setting ``device`` again makes it reopen
+        the device. A reopen attempted while the device is still in flux fails
+        and posts another warning, which lands here again: retries back off up
+        to ``MIC_REOPEN_MAX_DELAY_S`` and start over after a quiet spell.
+        """
+        now = time.monotonic()
+        if now - self._mic_last_failure > MIC_REOPEN_RESET_S:
+            self._mic_reopen_delay_s = MIC_REOPEN_DELAY_S
+        self._mic_last_failure = now
+        if self._mic_reopen_source_id is not None:
+            return
+
+        delay_s = self._mic_reopen_delay_s
+        self._mic_reopen_delay_s = min(delay_s * 2, MIC_REOPEN_MAX_DELAY_S)
+        self._logger.warning(f"Microphone lost ({reason}), reopening in {delay_s:g}s")
+        self._mic_reopen_source_id = GLib.timeout_add(
+            int(delay_s * 1000), self._reopen_mic, audiosrc
+        )
+
+    def _reopen_mic(self, audiosrc: Gst.Element) -> bool:
+        self._mic_reopen_source_id = None
+        # Skip a source left over from a pipeline rebuilt in the meantime.
+        if audiosrc.get_parent() is self._pipeline_sender:
+            audiosrc.set_property("device", audiosrc.get_property("device"))
+        return False
 
     def start(self) -> None:
-        """Rebuild the pipeline from scratch and start it.
+        """Start the pipeline, rebuilding it from scratch after a stop().
 
-        Rebuilding ensures a clean state after stop() released all hardware.
+        The first start reuses the pipeline built in __init__.
         """
-        self._logger.debug("Starting WebRTC (rebuilding pipeline)")
-        self._build_pipeline()
-        self._pipeline_sender.set_state(Gst.State.PLAYING)
+        with self._pipeline_lock:
+            if self._pipeline_needs_rebuild:
+                self._logger.debug("Starting WebRTC (rebuilding pipeline)")
+                self._bus_sender.remove_watch()
+                self._build_pipeline()
+                self._pipeline_needs_rebuild = False
+            else:
+                self._logger.debug("Starting WebRTC")
+            self._pipeline_sender.set_state(Gst.State.PLAYING)
+            self._pipeline_running = True
         GLib.timeout_add_seconds(5, self._dump_latency)
 
     def stop(self) -> None:
         """Stop the pipeline and release all hardware (camera, audio)."""
         self._logger.debug("Stopping WebRTC")
-        self._pipeline_sender.set_state(Gst.State.NULL)
+        with self._pipeline_lock:
+            self._pipeline_running = False
+            for source_id in (
+                self._mic_reopen_source_id,
+                self._pipeline_restart_source_id,
+            ):
+                if source_id is not None:
+                    GLib.source_remove(source_id)
+            self._mic_reopen_source_id = None
+            self._pipeline_restart_source_id = None
+            self._pipeline_sender.set_state(Gst.State.NULL)
+            self._pipeline_needs_rebuild = True
 
-    def play_sound(self, sound_file: str) -> None:
+    def play_sound(self, sound_file: str) -> bool:
         """Play a sound file on the robot's speaker.
 
         Uses GStreamer's playbin element with a platform-aware audio sink.
@@ -1517,15 +1699,21 @@ class GstMediaServer:
             sound_file: Path to the sound file to play. If the file is not
                 found at the given path, it is looked up in the assets directory.
 
+        Returns:
+            False if the file was not found, True once playback has started.
+
+        Raises:
+            RuntimeError: If the playbin element cannot be created.
+
         """
-        if not os.path.exists(sound_file):
+        if not os.path.isfile(sound_file):
             file_path = f"{ASSETS_ROOT_PATH}/{sound_file}"
-            if not os.path.exists(file_path):
+            if not os.path.isfile(file_path):
                 self._logger.error(
                     f"Sound file {sound_file} not found in assets directory "
                     "or given path."
                 )
-                return
+                return False
         else:
             file_path = sound_file
 
@@ -1534,8 +1722,7 @@ class GstMediaServer:
 
         playbin = Gst.ElementFactory.make("playbin", "player")
         if not playbin:
-            self._logger.error("Failed to create playbin element")
-            return
+            raise RuntimeError("Failed to create playbin element")
 
         # Build file URI
         if os.name == "nt":
@@ -1556,6 +1743,7 @@ class GstMediaServer:
 
         self._playbin = playbin
         playbin.set_state(Gst.State.PLAYING)
+        return True
 
     def stop_sound(self) -> None:
         """Stop the currently playing sound file.
@@ -2101,10 +2289,12 @@ class GstMediaServer:
         with self._pose_lock:
             if enabled:
                 self._pose_subscribers.add(peer_id)
+                self._pose_subscribed_on[peer_id] = self._peer_webrtcbins.get(peer_id)
                 if self._pose_provider is not None:
                     self._arm_pose_push_locked()
             else:
                 self._pose_subscribers.discard(peer_id)
+                self._pose_subscribed_on.pop(peer_id, None)
         if enabled:
             # Touching the peer's webrtcbin has to happen on the GLib main
             # loop, not on the caller's asyncio thread.
@@ -2124,14 +2314,15 @@ class GstMediaServer:
         leaving it there would keep the timer armed, building a state frame
         30 times a second and sending it nowhere until the peer disconnects.
         """
-        if peer_id in self._pose_channels:
-            return False
         webrtcbin = self._peer_webrtcbins.get(peer_id)
         if webrtcbin is None:
             self._logger.warning(
                 f"No webrtcbin for peer {peer_id}, cannot open pose channel"
             )
             self._drop_pose_subscription(peer_id)
+            return False
+        # A channel left by a reconnect's old session is replaced, not reused.
+        if self._pose_channel_bins.get(peer_id) is webrtcbin:
             return False
         if not self._setup_pose_channel(peer_id, webrtcbin):
             self._drop_pose_subscription(peer_id)
@@ -2154,6 +2345,7 @@ class GstMediaServer:
             return False
         self._logger.debug(f"Pose channel created for peer {peer_id}")
         self._pose_channels[peer_id] = channel
+        self._pose_channel_bins[peer_id] = webrtcbin
         channel.connect("on-open", self._on_pose_channel_open, peer_id)
         channel.connect("on-close", self._on_pose_channel_close, peer_id)
         channel.connect("on-error", self._on_data_channel_error, peer_id)
@@ -2206,7 +2398,9 @@ class GstMediaServer:
 
     def _on_pose_channel_close(self, channel: Gst.Element, peer_id: str) -> None:
         self._logger.info(f"Pose channel closed for peer {peer_id}")
-        self._drop_pose_peer(peer_id)
+        # Only the current channel: a replaced one belongs to an old session.
+        if self._pose_channels.get(peer_id) is channel:
+            self._drop_pose_peer(peer_id)
 
     def _drop_pose_peer(self, peer_id: str) -> None:
         """Forget a peer's pose channel and subscription.
@@ -2218,12 +2412,14 @@ class GstMediaServer:
         whose pose channel closed can still re-subscribe.
         """
         self._pose_channels.pop(peer_id, None)
+        self._pose_channel_bins.pop(peer_id, None)
         self._drop_pose_subscription(peer_id)
 
     def _drop_pose_subscription(self, peer_id: str) -> None:
         """Forget a peer's pose subscription."""
         with self._pose_lock:
             self._pose_subscribers.discard(peer_id)
+            self._pose_subscribed_on.pop(peer_id, None)
 
     def _on_data_channel_open(
         self, channel: Gst.Element, peer_id: str, key: Optional[str] = None

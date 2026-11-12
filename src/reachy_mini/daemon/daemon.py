@@ -101,6 +101,11 @@ class Daemon:
         # Loop the JSON-RPC relay runs on, set by the FastAPI factory because
         # `start()` may itself run on a throwaway one (see `set_rpc_loop`).
         self._jsonrpc_loop: "asyncio.AbstractEventLoop | None" = None
+        # Antenna watcher of the startup app; re-armed live by REST and JSON-RPC.
+        self.startup_app_watcher_task: "asyncio.Task[None] | None" = None
+        # Serializes those re-arms: two overlapping ones would both cancel the
+        # old watcher and both start a new one, leaking one that still fires.
+        self.startup_app_lock = asyncio.Lock()
 
         # Single source of truth for which managed app (local Python app or
         # remote WebRTC client) currently holds the robot's app slot. Shared
@@ -238,7 +243,7 @@ class Daemon:
         with ``run_coroutine_threadsafe``.
         """
         loop = self._jsonrpc_loop or asyncio.get_running_loop()
-        relay = JsonRpcRelay(app_manager, backend.broadcast_to_all_clients)
+        relay = JsonRpcRelay(app_manager, backend.broadcast_to_all_clients, daemon=self)
         self._jsonrpc_relay = relay
 
         def handler(raw: str, reply: Callable[[dict[str, Any]], None]) -> None:
@@ -909,14 +914,20 @@ class Daemon:
     def _publish_status(self) -> None:
         self._thread_event_publish_status.clear()
         while self._thread_event_publish_status.is_set() is False:
+            ws_server = self.ws_server
+            if ws_server is not None:
+                # Cleared before reading the status, so a client registered
+                # from here on is woken for a status read after it connected.
+                ws_server.client_connected_event().clear()
             json_str = self.status().model_dump_json()
-            if self.ws_server is None:
+            if ws_server is None:
                 self.logger.warning(
                     f"WS server not initialized, cannot publish status: {json_str}"
                 )
+                time.sleep(1)
             else:
-                self.ws_server.publish_status(json_str)
-            time.sleep(1)
+                ws_server.publish_status(json_str)
+                ws_server.client_connected_event().wait(1)
 
     def _setup_backend(
         self,
