@@ -55,7 +55,7 @@
 
     
     <script>
-      window.allureReportOptions = {"id":"awesome","reportName":"Reachy Mini Tests","logo":"","theme":"auto","reportLanguage":"en","createdAt":1793116444752,"reportUuid":"31f204d7-e189-48f7-b5d3-e739daa15f70","groupBy":[],"cacheKey":"1793116444752","ci":{"type":"github","detected":true,"repoName":"reachy_mini","jobUid":"olaservo/reachy_mini_Allure Report","jobUrl":"https://github.com/olaservo/reachy_mini/actions?query=workflow%3A%22Allure%20Report%22","jobName":"olaservo/reachy_mini - Allure Report","pipelineRunName":"Allure Report","pipelineRunUrl":"https://github.com/olaservo/reachy_mini/actions/runs/40534852020","jobRunUid":"40534852020","jobRunUrl":"https://github.com/olaservo/reachy_mini/actions/runs/40534852020","jobRunName":"allure #12","jobRunBranch":"main","pullRequestUrl":"","pullRequestName":"","commitSha":"a9a2a42adcc1abc7d9c90d390889bbebf930c96c","provider":"github","repository":{"slug":"olaservo/reachy_mini","url":"https://github.com/olaservo/reachy_mini"},"sourceBranch":"main"},"git":{"commit":"a9a2a42adcc1abc7d9c90d390889bbebf930c96c","branch":"main"},"runSummary":{"start":1793116296010,"stop":1793116421208,"duration":125198},"runSummaryByEnv":{"default":{"start":1793116296010,"stop":1793116421208,"duration":125198}},"layout":"base","allureVersion":"3.22.1","sections":["charts","timeline"],"defaultSection":""}
+      window.allureReportOptions = {"id":"awesome","reportName":"Reachy Mini Tests","logo":"","theme":"auto","reportLanguage":"en","createdAt":1794483607722,"reportUuid":"0fa6432e-9801-4c15-b88e-f1dc1e66adde","groupBy":[],"cacheKey":"1794483607722","ci":{"type":"github","detected":true,"repoName":"reachy_mini","jobUid":"olaservo/reachy_mini_Allure Report","jobUrl":"https://github.com/olaservo/reachy_mini/actions?query=workflow%3A%22Allure%20Report%22","jobName":"olaservo/reachy_mini - Allure Report","pipelineRunName":"Allure Report","pipelineRunUrl":"https://github.com/olaservo/reachy_mini/actions/runs/43210595128","jobRunUid":"43210595128","jobRunUrl":"https://github.com/olaservo/reachy_mini/actions/runs/43210595128","jobRunName":"allure #13","jobRunBranch":"main","pullRequestUrl":"","pullRequestName":"","commitSha":"25756e7042e453bfd89ed46bebfee3dbc35f39be","provider":"github","repository":{"slug":"olaservo/reachy_mini","url":"https://github.com/olaservo/reachy_mini"},"sourceBranch":"main"},"git":{"commit":"25756e7042e453bfd89ed46bebfee3dbc35f39be","branch":"main"},"runSummary":{"start":1794483490906,"stop":1794483585817,"duration":94911},"runSummaryByEnv":{"default":{"start":1794483490906,"stop":1794483585817,"duration":94911}},"layout":"base","allureVersion":"3.33.0","sections":["charts","timeline"],"defaultSection":""}
     </script>
 </head>
 <body>
@@ -68,8 +68,9 @@
     <div id="app"></div>
     
     <script>
-      const { origin, pathname } = window.location; 
-      const url = new URL(pathname, origin);
+      const url = new URL(window.location.href);
+      url.search = "";
+      url.hash = "";
       const baseEl = document.createElement("base");
       
       baseEl.href = url.toString();
@@ -80,7 +81,7 @@
     <script>
       window.allure = window.allure || {};
     </script>
-    <script   src="app-1cf27b2f4f66161c2cd6.js"></script>
+    <script   src="app-189f0a86432a713a6a0d.js"></script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LNDJ3J7WT0"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
@@ -88,8 +89,8 @@
         gtag('js', new Date());
         gtag('config', 'G-LNDJ3J7WT0', {
           "report": "awesome",
-          "allureVersion": "3.22.1",
-          "reportUuid": "31f204d7-e189-48f7-b5d3-e739daa15f70",
+          "allureVersion": "3.33.0",
+          "reportUuid": "0fa6432e-9801-4c15-b88e-f1dc1e66adde",
           "single_file": "false"
         });
     </script>
