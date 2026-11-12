@@ -1,6 +1,6 @@
 # Building & Publishing Apps
 
-Reachy Mini has an app ecosystem powered by Hugging Face Spaces. You can build Python apps, publish them, and any Reachy Mini owner can install them in one click from the dashboard.
+Reachy Mini has an app ecosystem powered by Hugging Face Spaces. You can build Python apps, publish them, and any Reachy Mini owner can install a community app in one click using Reachy Mini Control.
 
 <iframe
   width="560"
@@ -37,7 +37,7 @@ The repository includes a `skills/` directory with detailed guides that AI agent
 
 The Reachy Mini daemon manages your app's entire lifecycle:
 
-1. You send a "start app" request (from the dashboard or REST API).
+1. You send a "start app" request (from Reachy Mini Control or the REST API).
 2. The daemon launches your app as a **Python subprocess** (`python -u -m your_app.main`).
 3. Your app receives a connected `ReachyMini` instance and a `stop_event`.
 4. When stopped, the daemon sends `SIGINT` to your process, which triggers graceful shutdown.
@@ -173,7 +173,9 @@ class MyApp(ReachyMiniApp):
         # Your main loop...
 ```
 
-When `custom_app_url` is set, the app automatically starts a FastAPI web server that serves files from the `static/` directory inside your package. The dashboard shows a settings icon to open this UI. The page can be accessed from `http://localhost:8042` with a lite or `http://reachy-mini.local:8042` with a wireless.
+When `custom_app_url` is set, the app automatically starts a FastAPI web server that serves files from the `static/` directory inside your package. Reachy Mini Control opens this UI as soon as the server answers. The page can be accessed from `http://localhost:8042` with a lite or `http://reachy-mini.local:8042` with a wireless.
+
+Routes defined in `run()` only exist once `run()` starts: `wrapped_run()` starts the web server first, then connects to the robot, then calls `run()`. The page itself is served, and opened by Reachy Mini Control, from the start. If your page calls its routes as soon as it loads, retry until they respond: the [conversation app](https://github.com/pollen-robotics/reachy_mini_conversation_app/blob/main/src/reachy_mini_conversation_app/static/js/api.js) does this with `untilReady`.
 
 Set `custom_app_url = None` if your app doesn't need a web UI.
 
@@ -199,20 +201,18 @@ You can run your app's `main.py` directly for quick iteration (make sure the dae
 python -m my_app.main
 ```
 
-### 3. Test through the dashboard
+### 3. Run it through the daemon
 
-Install your app locally and test it through the dashboard, as users would:
+Install your app locally and start it the way the daemon does for users (as a subprocess, stopped with `SIGINT`):
 
 ```bash
 # Install in development mode
 uv pip install -e /path/to/my_app
 
-# Start the daemon
-reachy-mini-daemon          # Lite
-reachy-mini-daemon --sim    # Simulation
+# Start, then stop it (<HOST> as in "Via the REST API" below)
+curl -X POST http://<HOST>/api/apps/start-app/my_app
+curl -X POST http://<HOST>/api/apps/stop-current-app
 ```
-
-Then open <a href="http://127.0.0.1:8000/">http://127.0.0.1:8000/</a> — your app appears in the installed list.
 
 ### 4. Make an app start on wake-up or antenna touch
 
@@ -283,9 +283,9 @@ The assistant adds this automatically. If you create the README manually, don't 
 
 ## Installing Apps
 
-### From the dashboard
+### From Reachy Mini Control
 
-Open the Reachy Mini dashboard and click **Install** on any community app. This is the easiest way.
+In Reachy Mini Control, open the **Applications** tab and click **Discover Apps** to browse and install community apps.
 
 ### Via the REST API
 

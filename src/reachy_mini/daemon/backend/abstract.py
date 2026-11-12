@@ -42,6 +42,7 @@ from reachy_mini.io.protocol import (
     GetMotorModeCmd,
     GetRobotNameCmd,
     GetStateCmd,
+    GetTelemetryCmd,
     GetTrackedFaceCmd,
     GetVersionCmd,
     GetVolumeCmd,
@@ -76,6 +77,7 @@ from reachy_mini.io.protocol import (
     SetRobotNameCmd,
     SetSpeechOffsetsCmd,
     SetTargetCmd,
+    SetTelemetryCmd,
     SetTorqueCmd,
     SetVolumeCmd,
     SetWobblingCmd,
@@ -1781,7 +1783,11 @@ class Backend:
             )
 
         elif isinstance(cmd, SetMotorModeCmd):
-            self.set_motor_control_mode(MotorControlMode(cmd.mode))
+            try:
+                self.set_motor_control_mode(MotorControlMode(cmd.mode))
+            except ValueError as e:
+                send_response({"error": str(e), "command": "set_motor_mode"})
+                return
             send_response({"motor_mode": cmd.mode, "status": "ok"})
 
         elif isinstance(cmd, SetTorqueCmd):
@@ -1910,6 +1916,12 @@ class Backend:
                         "is_completed": get_first_wake_up_completed(),
                     }
                 )
+
+        elif isinstance(cmd, GetTelemetryCmd):
+            send_response(self._telemetry_status("get_telemetry", "ok"))
+
+        elif isinstance(cmd, SetTelemetryCmd):
+            asyncio.create_task(self._async_set_telemetry(cmd, send_response))
 
         elif isinstance(
             cmd,
@@ -2783,6 +2795,33 @@ class Backend:
             await self.play_move(move, initial_goto_duration=cmd.initial_goto_duration)
         except Exception as e:
             self.logger.warning(f"play_recorded_move: playback failed: {e}")
+
+    @staticmethod
+    def _telemetry_status(command: str, status: str) -> dict[str, Any]:
+        from reachy_mini.daemon.telemetry import disabled_by_env, user_enabled
+
+        return {
+            "command": command,
+            "status": status,
+            "enabled": user_enabled(),
+            "disabled_by_env": disabled_by_env(),
+        }
+
+    async def _async_set_telemetry(
+        self,
+        cmd: SetTelemetryCmd,
+        send_response: Callable[[dict[str, Any]], None],
+    ) -> None:
+        from reachy_mini.daemon.telemetry import telemetry
+
+        status = "ok"
+        try:
+            # File writes and the toggle lock: keep them off the loop.
+            await asyncio.to_thread(telemetry.set_enabled, cmd.enabled)
+        except OSError as e:
+            self.logger.warning(f"set_telemetry failed: {e}")
+            status = "error"
+        send_response(self._telemetry_status("set_telemetry", status))
 
     async def _async_preload_dataset(
         self,

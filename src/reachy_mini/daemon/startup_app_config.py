@@ -31,6 +31,7 @@ _AUDIO_OUTPUT_KEY = "selected_audio_output"
 _EQ_KEY = "speaker_eq_gains"
 _TURN_KEY = "turn_enabled"
 _FIRST_WAKE_UP_KEY = "first_wake_up_completed"
+_TELEMETRY_KEY = "telemetry_enabled"
 # equalizer-10bands accepts per-band gains in [-24, +12] dB.
 _EQ_GAIN_MIN, _EQ_GAIN_MAX = -24.0, 12.0
 
@@ -201,6 +202,32 @@ def get_turn_enabled() -> bool | None:
     robot that is only ever reached from its own network.
     """
     return _get_bool(_TURN_KEY)
+
+
+def get_telemetry_enabled() -> bool | None:
+    """Return whether anonymous telemetry is allowed, or None if unset.
+
+    Privacy-safe: an unparseable file or a non-boolean value counts as False,
+    so a typo made while opting out never turns telemetry on, and None (which
+    lets the caller write the default) only means the key is really absent.
+    """
+    try:
+        config = json.loads(_config_path().read_text())
+    except FileNotFoundError:
+        return None
+    except (OSError, ValueError):
+        return False
+    if not isinstance(config, dict):
+        return False
+    if _TELEMETRY_KEY not in config:
+        return None
+    value = config[_TELEMETRY_KEY]
+    return value if isinstance(value, bool) else False
+
+
+def set_telemetry_enabled(enabled: bool) -> None:
+    """Persist the telemetry choice. May raise OSError."""
+    _update(_TELEMETRY_KEY, bool(enabled))
 
 
 def get_first_wake_up_completed() -> bool:
